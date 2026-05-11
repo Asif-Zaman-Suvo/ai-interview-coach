@@ -1,69 +1,61 @@
 # AI Interview Coach
 
-Web app for **AI-assisted mock interviews**: setup flows, practice sessions, feedback views, and a marketing landing page. Built with **Next.js App Router**, **TypeScript**, **Tailwind CSS v4**, **shadcn-style UI** (Base UI primitives + shared components), and **next-themes** for light/dark mode.
+## Purpose
 
-## Requirements
+Web app for **mock interviews**: pick role and difficulty, run a practice session (UI + mock transcript flow), then review **feedback**, **scores**, and **analytics-style** summaries. Includes a **marketing** landing area and **auth** screens as scaffolding for a full product.
 
-- **Node.js** 20+ (see `package.json` / CI if you pin a version)
+## Technologies
 
-## Setup
+| Area | Stack |
+|------|--------|
+| Framework | **Next.js** 16 (App Router), **React** 19 |
+| Language | **TypeScript** |
+| Styling | **Tailwind CSS** v4 (`@tailwindcss/postcss`), design tokens in `app/globals.css` |
+| UI | **@base-ui/react**, **Radix Icons**, **Lucide**, **class-variance-authority**, **tailwind-merge** |
+| Charts | **Recharts** |
+| Theme | **next-themes** (light / dark) |
+| Tooling | **ESLint** (`eslint-config-next`) |
 
-```bash
-npm install
+## Project structure
+
+```text
+ai-interview-coach/
+├── app/
+│   ├── layout.tsx              # Root layout, fonts, ThemeProvider
+│   ├── globals.css             # Tailwind import, @theme tokens, base styles
+│   ├── (marketing)/            # Public site (route group, no URL segment)
+│   │   ├── layout.tsx
+│   │   ├── page.tsx            # Landing (/)
+│   │   ├── privacy/page.tsx
+│   │   └── terms/page.tsx
+│   ├── (dashboard)/            # App shell: sidebar, mobile nav
+│   │   ├── layout.tsx
+│   │   ├── dashboard/page.tsx  # /dashboard
+│   │   ├── analytics/page.tsx  # /analytics
+│   │   └── interview/
+│   │       ├── setup/page.tsx
+│   │       └── [sessionId]/
+│   │           ├── page.tsx
+│   │           └── feedback/page.tsx
+│   └── (auth)/                 # Auth without dashboard chrome
+│       ├── login/page.tsx      # /login
+│       └── register/page.tsx   # /register
+├── components/
+│   ├── ui/                     # Buttons, cards, inputs, dialogs, etc.
+│   ├── layout/                 # Sidebar, bottom nav, theme toggle
+│   ├── landing/                # Marketing sections
+│   ├── dashboard/              # Dashboard widgets
+│   ├── interview/              # Session / setup / feedback UI
+│   └── analytics/              # Charts for analytics page
+├── lib/
+│   ├── types.ts
+│   ├── mock-data.ts
+│   └── utils.ts
+├── public/                     # Static assets
+├── components.json             # shadcn-style component paths
+├── package.json
+├── tsconfig.json
+├── next.config.ts
+├── postcss.config.mjs
+└── tailwind.config.ts
 ```
-
-## Scripts
-
-| Command        | Description              |
-| -------------- | ------------------------ |
-| `npm run dev`  | Dev server (Turbopack)   |
-| `npm run build`| Production build         |
-| `npm run start`| Serve production build   |
-| `npm run lint` | ESLint                   |
-
-## App structure
-
-- **`app/layout.tsx`** — Root HTML/body, global CSS, **`ThemeProvider`** (no chrome).
-- **`app/(marketing)/`** — Public site: landing `/`, stub legal pages `/privacy`, `/terms`. Layout includes **Navbar** + **Footer**.
-- **`app/(dashboard)/`** — Signed-in style shell: **Sidebar**, mobile top bar + **BottomNav**, main content. Routes: **`/dashboard`**, **`/analytics`**, **`/interview/*`**.
-- **`app/(auth)/`** — **`/login`**, **`/register`** (no dashboard shell).
-
-## Styling & theme
-
-- Tokens and Tailwind v4 wiring live in **`app/globals.css`** (`@theme inline`, semantic colors, `@custom-variant dark` for class-based dark mode).
-- UI primitives live under **`components/ui/`**; feature UI under **`components/interview/`**, **`components/dashboard/`**, **`components/landing/`**, etc.
-
-## Environment
-
-Add a **`.env.local`** (gitignored) when you wire APIs, auth, or analytics. There is no committed env template yet.
-
-## Publishing to GitHub (first push)
-
-Prerequisites: SSH config with a **`personal`** or **`office`** host alias pointing at `github.com` (see [GitHub docs on multiple accounts](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)). Create an **empty** repository on GitHub (no README) named e.g. `ai-interview-coach`.
-
-Replace **`GITHUB_USERNAME`**, **`REPO_NAME`**, and pick the host that matches your SSH config:
-
-```bash
-git remote add origin git@personal:GITHUB_USERNAME/REPO_NAME.git
-# or: git remote add origin git@office:GITHUB_USERNAME/REPO_NAME.git
-
-git push -u origin main
-```
-
-If `origin` already exists, use `git remote set-url origin <url>` instead.
-
-## Git: ignoring Cursor IDE files
-
-**`.cursor/`** is listed in **`.gitignore`** so local Cursor config is not committed.
-
-If `.cursor` was already tracked, remove it from the index once (does not delete your local folder):
-
-```bash
-git rm -r --cached .cursor
-```
-
-Then commit the `.gitignore` change.
-
-## License
-
-Private project (`"private": true` in `package.json`); add a license file if you open-source it.
