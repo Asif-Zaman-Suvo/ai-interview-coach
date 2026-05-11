@@ -24,6 +24,12 @@
 .DS_Store
 *.pem
 
+# editor / local AI (do not commit)
+.cursor/
+
+# graphify (local AST cache / reports — regenerate with `graphify update`)
+graphify-out/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
