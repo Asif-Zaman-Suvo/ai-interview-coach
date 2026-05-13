@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -8,29 +8,40 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Eye, EyeOff } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { data: session, isPending: sessionPending } = authClient.useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    if (sessionPending) return;
+    if (session?.user) router.replace("/dashboard");
+  }, [sessionPending, session, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
-    // Mock authentication
-    setTimeout(() => {
-      if (email && password) {
-        router.push("/dashboard");
-      } else {
-        setError("Please enter your email and password");
-        setIsLoading(false);
-      }
-    }, 1000);
+    const { error: signError } = await authClient.signIn.email({
+      email,
+      password,
+    });
+
+    if (signError) {
+      setError(signError.message ?? "Sign in failed");
+      setIsLoading(false);
+      return;
+    }
+
+    router.push("/dashboard");
+    setIsLoading(false);
   };
 
   return (
@@ -91,11 +102,7 @@ export default function LoginPage() {
               </p>
             )}
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
@@ -117,6 +124,9 @@ export default function LoginPage() {
               variant="outline"
               className="w-full mt-4"
               disabled={isLoading}
+              onClick={() =>
+                setError("Google sign-in is not configured on the server.")
+              }
             >
               <svg className="size-5 mr-2" viewBox="0 0 24 24">
                 <path

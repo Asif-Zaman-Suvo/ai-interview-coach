@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Eye, EyeOff } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { data: session, isPending: sessionPending } = authClient.useSession();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,6 +20,11 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (sessionPending) return;
+    if (session?.user) router.replace("/dashboard");
+  }, [sessionPending, session, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,10 +42,20 @@ export default function RegisterPage() {
 
     setIsLoading(true);
 
-    // Mock registration
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 1000);
+    const { error: signUpError } = await authClient.signUp.email({
+      email,
+      password,
+      name,
+    });
+
+    if (signUpError) {
+      setError(signUpError.message ?? "Could not create account");
+      setIsLoading(false);
+      return;
+    }
+
+    router.push("/dashboard");
+    setIsLoading(false);
   };
 
   return (
@@ -46,7 +63,9 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md border border-border shadow-none">
         <div className="p-8">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-semibold text-foreground">Create Account</h1>
+            <h1 className="text-2xl font-semibold text-foreground">
+              Create Account
+            </h1>
             <p className="text-sm text-muted-foreground mt-2">
               Start practicing for your next interview
             </p>
@@ -125,11 +144,7 @@ export default function RegisterPage() {
               </p>
             )}
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Creating account..." : "Create Account"}
             </Button>
           </form>
@@ -151,6 +166,9 @@ export default function RegisterPage() {
               variant="outline"
               className="w-full mt-4"
               disabled={isLoading}
+              onClick={() =>
+                setError("Google sign-in is not configured on the server.")
+              }
             >
               <svg className="size-5 mr-2" viewBox="0 0 24 24">
                 <path
