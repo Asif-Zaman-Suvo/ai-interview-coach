@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   PlusCircle,
   BarChart3,
+  Settings,
   FileText,
 } from "lucide-react";
 
@@ -15,6 +16,7 @@ const navItems = [
   { href: "/interview/setup", label: "New", icon: PlusCircle },
   { href: "/analytics", label: "History", icon: BarChart3 },
   { href: "/resume", label: "Resume", icon: FileText },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export default function BottomNav() {
