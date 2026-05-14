@@ -10,18 +10,20 @@ export default function DashboardShellLayout({
 }) {
   return (
     <DashboardAuthGate>
-      <div className="flex min-h-dvh overflow-hidden bg-background">
+      <div className="flex min-h-dvh w-full bg-background">
         <aside className="hidden md:flex md:w-52 md:flex-col md:shrink-0 md:border-r md:border-border bg-card md:sticky md:top-0 md:h-dvh md:overflow-y-auto">
           <Sidebar />
         </aside>
 
-        <div className="flex min-h-dvh flex-1 min-w-0 flex-col overflow-y-auto">
+        <div className="flex min-h-dvh min-w-0 flex-1 flex-col bg-background md:min-h-dvh">
           <header className="md:hidden flex h-12 shrink-0 items-center justify-between border-b border-border bg-card px-4 sticky top-0 z-10">
             <span className="text-sm font-semibold">Interview Coach</span>
             <ThemeToggle />
           </header>
 
-          <main className="flex-1 p-6 pb-24 md:p-8 md:pb-8">{children}</main>
+          <main className="flex flex-1 flex-col min-h-0 min-w-0 overflow-y-auto bg-background p-6 pb-24 md:p-8 md:pb-8">
+            {children}
+          </main>
         </div>
 
         <nav

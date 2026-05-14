@@ -18,9 +18,12 @@ export function TranscriptArea({
           <Volume2 className="size-4 text-muted-foreground" />
           <h3 className="text-sm font-medium text-foreground">Transcript</h3>
           {isListening && (
-            <span className="ml-auto flex size-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-              <span className="relative inline-flex rounded-full size-2 bg-primary" />
+            <span className="relative ml-auto flex size-6 shrink-0 items-center justify-center">
+              <span
+                className="absolute inset-0 m-auto inline-flex size-3 animate-ping rounded-full bg-primary opacity-75"
+                aria-hidden
+              />
+              <span className="relative inline-flex size-2 shrink-0 rounded-full bg-primary" />
             </span>
           )}
         </div>

@@ -3,20 +3,39 @@
 import StatsCard from "@/components/dashboard/StatsCard";
 import RecentSessionsTable from "@/components/dashboard/RecentSessionsTable";
 import { ScoreTrendChart } from "@/components/dashboard/ScoreTrendChart";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { buttonVariants } from "@/components/ui/button";
+import { useStats, useRecentSessions, useScoreTrend } from "@/lib/hooks/useDashboard";
 import Link from "next/link";
-import { mockSessionSummaries, mockScoreData } from "@/lib/mock-data";
-import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useStats();
+  const { data: recentSessions, isLoading: sessionsLoading, isError: sessionsError } = useRecentSessions();
+  const { data: scoreTrend, isLoading: trendLoading, isError: trendError } = useScoreTrend();
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
+  if (statsLoading || sessionsLoading || trendLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (statsError || sessionsError || trendError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <ErrorMessage message="Failed to load dashboard data" />
+      </div>
+    );
+  }
+
+  const dashboardStats = stats || {
+    totalSessions: 0,
+    averageScore: 0,
+    bestRole: null,
+    currentStreak: 0,
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -38,32 +57,32 @@ export default function DashboardPage() {
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatsCard label="Total sessions" value="12" />
+        <StatsCard label="Total sessions" value={dashboardStats.totalSessions.toString()} />
         <StatsCard
           label="Average score"
-          value="78%"
-          trend="+5% this week"
+          value={`${dashboardStats.averageScore}%`}
+          trend="Personal best"
           trendUp
         />
         <StatsCard
           label="Best role"
-          value="Frontend Dev"
-          trend="91% avg score"
+          value={dashboardStats.bestRole || "N/A"}
+          trend="Top performance"
         />
         <StatsCard
           label="Current streak"
-          value="4 days"
-          trend="+2 days"
-          trendUp
+          value={`${dashboardStats.currentStreak} days`}
+          trend="Keep it up!"
+          trendUp={dashboardStats.currentStreak > 0}
         />
       </div>
 
       {/* Charts + Sessions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ScoreTrendChart data={mockScoreData} isLoading={isLoading} />
+        <ScoreTrendChart data={scoreTrend || []} isLoading={false} />
         <RecentSessionsTable
-          sessions={mockSessionSummaries}
-          isLoading={isLoading}
+          sessions={recentSessions || []}
+          isLoading={false}
         />
       </div>
     </div>

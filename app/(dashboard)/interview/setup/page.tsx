@@ -8,17 +8,22 @@ import { RoleSelection } from "@/components/interview/RoleSelection";
 import { DifficultySelection } from "@/components/interview/DifficultySelection";
 import { ResumeUpload } from "@/components/interview/ResumeUpload";
 import { InterviewSummary } from "@/components/interview/InterviewSummary";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { JobRole, Difficulty } from "@/lib/types";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { JobRole, Difficulty, Role } from "@/lib/types";
+import { useRoles, useStartSession } from "@/lib/hooks/useInterview";
 
 const steps = ["Role", "Difficulty", "Resume", "Summary"];
 
 export default function InterviewSetupPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedRole, setSelectedRole] = useState<JobRole | null>(null);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [resumeText, setResumeText] = useState<string>("");
+
+  const { data: roles, isLoading: rolesLoading } = useRoles();
+  const { mutate: startSession, isPending: isStarting } = useStartSession();
 
   const canProceed = () => {
     switch (currentStep) {
@@ -35,14 +40,50 @@ export default function InterviewSetupPage() {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Start interview - navigate to interview session
-      const sessionId = `sess-${Date.now()}`;
-      router.push(`/interview/${sessionId}`);
+      // Start interview with API
+      if (!selectedRole || !selectedDifficulty) return;
+
+      // Read resume file if uploaded
+      let resumeText = "";
+      if (resumeFile) {
+        resumeText = await readResumeFile(resumeFile);
+      }
+
+      startSession(
+        {
+          roleId: selectedRole.id,
+          difficulty: selectedDifficulty,
+          resumeText: resumeText || undefined,
+        },
+        {
+          onSuccess: (data) => {
+            router.push(`/interview/${data.sessionId}`);
+          },
+          onError: (error) => {
+            console.error('Failed to start session:', error);
+            // Handle error appropriately
+          },
+        }
+      );
     }
+  };
+
+  const readResumeFile = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        resolve(text);
+      };
+      reader.onerror = (e) => {
+        reject(new Error('Failed to read resume file'));
+      };
+      reader.readAsText(file);
+    });
   };
 
   const handleBack = () => {
@@ -79,8 +120,10 @@ export default function InterviewSetupPage() {
       <div className="mb-8">
         {currentStep === 1 && (
           <RoleSelection
+            roles={roles}
             selectedRole={selectedRole}
             onSelect={setSelectedRole}
+            isLoading={rolesLoading}
           />
         )}
         {currentStep === 2 && (
@@ -115,9 +158,14 @@ export default function InterviewSetupPage() {
           variant="default"
           size="sm"
           onClick={handleNext}
-          disabled={!canProceed()}
+          disabled={!canProceed() || isStarting}
         >
-          {currentStep === steps.length ? (
+          {isStarting ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              Starting...
+            </>
+          ) : currentStep === steps.length ? (
             "Start Interview"
           ) : (
             <>

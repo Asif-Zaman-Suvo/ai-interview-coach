@@ -18,8 +18,9 @@ interface ScoreTrendChartProps {
   isLoading?: boolean;
 }
 
-function formatChartDate(date: Date): string {
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+function formatChartDate(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 export function ScoreTrendChart({ data, isLoading }: ScoreTrendChartProps) {

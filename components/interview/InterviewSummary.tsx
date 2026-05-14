@@ -1,10 +1,10 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Check } from "lucide-react";
-import { JobRole, Difficulty } from "@/lib/types";
+import { Role, Difficulty } from "@/lib/types";
 
 interface InterviewSummaryProps {
-  role: JobRole;
+  role: Role;
   difficulty: Difficulty;
   resumeFile: File | null;
 }
@@ -24,7 +24,10 @@ export function InterviewSummary({
         <div className="p-6 space-y-4">
           <div className="flex items-center justify-between pb-4 border-b border-border">
             <span className="text-sm text-muted-foreground">Role</span>
-            <span className="text-sm font-medium text-foreground">{role}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">{role.icon}</span>
+              <span className="text-sm font-medium text-foreground">{role.name}</span>
+            </div>
           </div>
 
           <div className="flex items-center justify-between pb-4 border-b border-border">

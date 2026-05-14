@@ -62,25 +62,26 @@ export interface InterviewSession {
 
 export interface SessionSummary {
   id: string;
-  role: JobRole;
-  date: Date;
+  role: JobRole | string;
+  date: Date | string;
   score: number;
   duration: number;
-  status: InterviewStatus;
+  status?: InterviewStatus;
+  difficulty?: Difficulty;
 }
 
 export interface DashboardStats {
   totalSessions: number;
   averageScore: number;
-  bestRole: JobRole | null;
+  bestRole: JobRole | string | null;
   currentStreak: number;
 }
 
 export interface ScoreDataPoint {
-  sessionId: string;
-  date: Date;
+  sessionId?: string;
+  date: Date | string;
   score: number;
-  role: JobRole;
+  role?: JobRole | string;
 }
 
 export interface User {
@@ -88,4 +89,104 @@ export interface User {
   name: string;
   email: string;
   avatar?: string;
+  role: 'user' | 'admin';
+  createdAt?: string;
+}
+
+// API Role types (from backend)
+export interface Role {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  category: string;
+}
+
+// Extended session types for API
+export interface Session {
+  id: string;
+  userId?: string;
+  role: string;
+  roleId: string;
+  difficulty: Difficulty;
+  score: number;
+  duration: number;
+  status: 'active' | 'completed';
+  startedAt: string | Date;
+  completedAt?: string;
+  summary?: string;
+  topImprovements?: string[];
+  questions: Question[];
+  answers?: Answer[];
+  feedback?: QuestionFeedback[];
+  resumeText?: string;
+}
+
+// Answer submission
+export interface AnswerSubmission {
+  questionId: string;
+  transcript: string;
+  audioDuration?: number;
+}
+
+// Answer feedback from API
+export interface AnswerFeedback {
+  questionId: string;
+  transcript: string;
+  feedback: string;
+  score: number;
+  strengths: string[];
+  improvements: string[];
+  nextQuestion?: Question;
+}
+
+// Interview setup payload
+export interface InterviewSetup {
+  roleId: string;
+  difficulty: Difficulty;
+  resumeText?: string;
+}
+
+// Session start response
+export interface SessionStartResponse {
+  sessionId: string;
+  questions: Question[];
+}
+
+// Admin stats
+export interface AdminStats {
+  totalUsers: number;
+  totalSessions: number;
+  averageScore: number;
+  activeToday: number;
+}
+
+// Admin user management
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: 'user' | 'admin';
+  createdAt: string;
+  sessionsCount?: number;
+}
+
+// Question bank management
+export interface QuestionBankItem {
+  id: string;
+  text: string;
+  type: 'technical' | 'behavioral';
+  difficulty: Difficulty;
+  role: string;
+  idealAnswer?: string;
+  createdAt?: string;
+}
+
+// History pagination
+export interface PaginatedSessions {
+  sessions: SessionSummary[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }

@@ -1,0 +1,123 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { authClient } from "@/lib/auth-client";
+import {
+  Shield,
+  Users,
+  Database,
+  BarChart3,
+  LogOut,
+} from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
+import { Button } from "@/components/ui/button";
+
+const adminNavItems = [
+  { href: "/admin/dashboard", label: "Admin Dashboard", icon: BarChart3 },
+  { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/questions", label: "Question Bank", icon: Database },
+  { href: "/admin/stats", label: "System Stats", icon: Shield },
+];
+
+function initialsFromUser(name?: string | null, email?: string | null): string {
+  const n = (name ?? "").trim();
+  if (n) {
+    const parts = n.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2)
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return n.slice(0, 2).toUpperCase();
+  }
+  const e = (email ?? "").trim();
+  if (e) return e.slice(0, 2).toUpperCase();
+  return "?";
+}
+
+export default function AdminSidebar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+  const displayName = user?.name ?? user?.email ?? "Admin";
+  const initials = initialsFromUser(user?.name ?? null, user?.email ?? null);
+
+  async function handleSignOut() {
+    await authClient.signOut();
+    router.push("/login");
+    router.refresh();
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Logo */}
+      <div className="flex items-center gap-2 px-4 h-12 border-b border-border shrink-0">
+        <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
+          <Shield className="size-3 text-primary-foreground" />
+        </div>
+        <span className="text-sm font-semibold text-foreground">
+          Admin Panel
+        </span>
+      </div>
+
+      {/* Admin badge */}
+      <div className="px-4 py-2 bg-blue-500/10 border-b border-border">
+        <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+          Administrator Access
+        </span>
+      </div>
+
+      {/* Nav items */}
+      <nav className="flex-1 px-2 py-3 space-y-0.5">
+        {adminNavItems.map(({ href, label, icon: Icon }) => {
+          const active =
+            pathname === href ||
+            (pathname?.startsWith(href + "/") ?? false);
+          return (
+            <Link key={href} href={href}>
+              <span
+                className={cn(
+                  "flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm transition-colors",
+                  active
+                    ? "bg-accent text-accent-foreground font-medium"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                <Icon className="size-4 shrink-0" />
+                {label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Footer */}
+      <div className="px-2 py-3 border-t border-border space-y-2 shrink-0">
+        <ThemeToggle />
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-muted">
+          <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center text-accent-foreground text-[10px] font-semibold">
+            {initials}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-foreground truncate">
+              {displayName}
+            </p>
+            <p className="text-xs text-muted-foreground truncate">
+              {user?.email ?? "Signed in"}
+            </p>
+          </div>
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start gap-2 px-3 text-muted-foreground"
+          onClick={() => void handleSignOut()}
+        >
+          <LogOut className="size-4" />
+          Sign out
+        </Button>
+      </div>
+    </div>
+  );
+}

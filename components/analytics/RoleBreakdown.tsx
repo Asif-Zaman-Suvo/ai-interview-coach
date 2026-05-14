@@ -13,7 +13,22 @@ interface RoleBreakdownProps {
 }
 
 export function RoleBreakdown({ data }: RoleBreakdownProps) {
-  const maxCount = Math.max(...data.map((d) => d.count));
+  if (data.length === 0) {
+    return (
+      <Card className="border border-border shadow-none">
+        <CardHeader>
+          <CardTitle>Role Breakdown</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Complete at least one session to see performance by role.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const maxCount = Math.max(...data.map((d) => d.count), 1);
 
   return (
     <Card className="border border-border shadow-none">

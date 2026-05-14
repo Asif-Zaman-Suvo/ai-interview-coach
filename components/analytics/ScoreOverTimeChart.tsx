@@ -19,7 +19,10 @@ interface ScoreOverTimeChartProps {
 
 export function ScoreOverTimeChart({ data }: ScoreOverTimeChartProps) {
   const chartData = data.map((point) => ({
-    date: point.date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    date: new Date(point.date as Date | string).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    }),
     score: point.score,
     role: point.role,
   }));
