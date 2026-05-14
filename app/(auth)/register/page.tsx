@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
@@ -20,11 +21,12 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
 
   useEffect(() => {
     if (sessionPending) return;
-    if (session?.user) router.replace("/dashboard");
-  }, [sessionPending, session, router]);
+    if (session?.user && !registeredEmail) router.replace("/dashboard");
+  }, [sessionPending, session, router, registeredEmail]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,9 +56,40 @@ export default function RegisterPage() {
       return;
     }
 
-    router.push("/dashboard");
+    setRegisteredEmail(email.trim());
+    setPassword("");
+    setConfirmPassword("");
     setIsLoading(false);
   };
+
+  if (registeredEmail) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
+        <Card className="w-full max-w-md border border-border shadow-none">
+          <div className="p-8 text-center space-y-4">
+            <h1 className="text-2xl font-semibold text-foreground">
+              Account created
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Your account <span className="font-medium text-foreground">{registeredEmail}</span> is
+              ready. Sign in with your email and password to continue.
+            </p>
+            <Link
+              href="/login"
+              className={cn(buttonVariants({ className: "w-full" }))}
+            >
+              Go to sign in
+            </Link>
+            <p className="text-sm text-muted-foreground">
+              <Link href="/" className="text-primary hover:underline">
+                Back to home
+              </Link>
+            </p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">

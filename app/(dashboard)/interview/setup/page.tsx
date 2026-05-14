@@ -63,10 +63,6 @@ export default function InterviewSetupPage() {
           onSuccess: (data) => {
             router.push(`/interview/${data.sessionId}`);
           },
-          onError: (error) => {
-            console.error('Failed to start session:', error);
-            // Handle error appropriately
-          },
         }
       );
     }

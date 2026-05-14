@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import {
   Role,
@@ -25,6 +26,11 @@ export const useStartSession = () => {
       queryClient.invalidateQueries({ queryKey: ['recent-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['stats'] });
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
+    },
+    onError: (error: unknown) => {
+      const msg =
+        error instanceof Error ? error.message : 'Failed to start interview';
+      toast.error(msg, { duration: 12_000 });
     },
   });
 };

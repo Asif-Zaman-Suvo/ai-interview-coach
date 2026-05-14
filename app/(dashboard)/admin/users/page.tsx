@@ -2,7 +2,11 @@
 
 import { Card } from "@/components/ui/card";
 import { UsersTable } from "@/components/admin/UsersTable";
-import { useAdminUsers, useChangeRole, useDeleteUser } from "@/lib/hooks/useAdmin";
+import {
+  useAdminUsers,
+  useChangeRole,
+  useDeleteUser,
+} from "@/lib/hooks/useAdmin";
 import { useState } from "react";
 import {
   Dialog,
@@ -13,27 +17,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { authClient } from "@/lib/auth-client";
 
 export default function AdminUsersPage() {
   const { data: users, isLoading, isError } = useAdminUsers();
-  const { mutate: changeRole } = useChangeRole();
+  const { mutate: changeRole, isPending: rolePending } = useChangeRole();
   const { mutate: deleteUser } = useDeleteUser();
+  const { data: session } = authClient.useSession();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
-  const handleRoleChange = (userId: string, newRole: string) => {
-    changeRole(
-      { id: userId, role: newRole },
-      {
-        onSuccess: () => {
-          console.log('Role changed successfully');
-        },
-        onError: (error) => {
-          console.error('Failed to change role:', error);
-        },
-      }
-    );
+  const handleRoleChange = (
+    userId: string,
+    newRole: "user" | "admin",
+  ) => {
+    changeRole({ id: userId, role: newRole });
   };
 
   const handleDeleteClick = (userId: string) => {
@@ -45,12 +44,8 @@ export default function AdminUsersPage() {
     if (selectedUserId) {
       deleteUser(selectedUserId, {
         onSuccess: () => {
-          console.log('User deleted successfully');
           setDeleteDialogOpen(false);
           setSelectedUserId(null);
-        },
-        onError: (error) => {
-          console.error('Failed to delete user:', error);
         },
       });
     }
@@ -59,9 +54,12 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">User Management</h1>
+        <h1 className="text-2xl font-semibold text-foreground">
+          User Management
+        </h1>
         <p className="text-sm text-muted-foreground">
-          Manage user accounts and permissions
+          Manage user accounts and permissions. Set role to Administrator to grant
+          admin access.
         </p>
       </div>
 
@@ -70,18 +68,19 @@ export default function AdminUsersPage() {
           users={users}
           isLoading={isLoading}
           isError={isError}
+          viewerEmail={session?.user?.email ?? null}
+          roleUpdatePending={rolePending}
           onRoleChange={handleRoleChange}
           onDelete={handleDeleteClick}
         />
       </Card>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogTitle>Confirm deletion</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this user? This action cannot be undone.
+              Are you sure you want to delete this user? This cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -89,7 +88,7 @@ export default function AdminUsersPage() {
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDeleteConfirm}>
-              Delete User
+              Delete user
             </Button>
           </DialogFooter>
         </DialogContent>

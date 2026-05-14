@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { AdminStats, AdminUser, QuestionBankItem } from '@/lib/types';
 
@@ -24,10 +25,21 @@ export const useChangeRole = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, role }: { id: string; role: string }) =>
-      api.put(`/admin/users/${id}/role`, { role }),
+    mutationFn: ({
+      id,
+      role,
+    }: {
+      id: string;
+      role: 'user' | 'admin';
+    }) => api.put(`/admin/users/${id}/role`, { role }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['auth-user'] });
+    },
+    onError: (error: unknown) => {
+      const msg =
+        error instanceof Error ? error.message : 'Failed to update role';
+      toast.error(msg);
     },
   });
 };
@@ -39,6 +51,11 @@ export const useDeleteUser = () => {
     mutationFn: (id: string) => api.delete(`/admin/users/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    },
+    onError: (error: unknown) => {
+      const msg =
+        error instanceof Error ? error.message : 'Failed to delete user';
+      toast.error(msg);
     },
   });
 };

@@ -86,4 +86,26 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
+
+  /*
+   * Pointer on interactive controls (buttons, links, common form controls).
+   * Disabled / non-interactive inputs are excluded.
+   */
+  button:not(:disabled):not([disabled]),
+  [role="button"]:not(:disabled):not([aria-disabled="true"]),
+  a[href]:not([href=""]),
+  summary,
+  select:not(:disabled):not([disabled]),
+  input[type="button"]:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  input[type="reset"]:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  input[type="file"]:not(:disabled),
+  input[type="range"]:not(:disabled),
+  input[type="color"]:not(:disabled),
+  input[type="image"]:not(:disabled),
+  label[for] {
+    cursor: pointer;
+  }
 }
