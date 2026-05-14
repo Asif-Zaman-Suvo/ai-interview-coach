@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { EmailPasswordLoginForm } from "@/components/auth/EmailPasswordLoginForm";
 import { useRedirectIfAuthenticated } from "@/lib/hooks/useRedirectIfAuthenticated";
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   useRedirectIfAuthenticated();
   const [googleErr, setGoogleErr] = useState("");
 
@@ -16,13 +16,15 @@ export default function LoginPage() {
       <Card className="w-full max-w-md border border-border shadow-none">
         <div className="p-8">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-semibold text-foreground">Sign In</h1>
+            <h1 className="text-2xl font-semibold text-foreground">
+              Admin sign in
+            </h1>
             <p className="text-sm text-muted-foreground mt-2">
-              Welcome back to Interview Coach
+              Administrator access only
             </p>
           </div>
 
-          <EmailPasswordLoginForm mode="user" />
+          <EmailPasswordLoginForm mode="admin" />
 
           <div className="mt-6">
             <div className="relative">
@@ -54,6 +56,14 @@ export default function LoginPage() {
           </div>
 
           <div className="mt-6 space-y-3 text-center text-sm">
+            <p>
+              <Link
+                href="/login"
+                className="text-muted-foreground hover:text-foreground underline underline-offset-4"
+              >
+                Back to user sign in
+              </Link>
+            </p>
             <p className="text-muted-foreground">
               Don&apos;t have an account?{" "}
               <Link
@@ -61,14 +71,6 @@ export default function LoginPage() {
                 className="text-primary hover:underline font-medium"
               >
                 Sign up
-              </Link>
-            </p>
-            <p>
-              <Link
-                href="/login/admin"
-                className="text-muted-foreground hover:text-foreground underline underline-offset-4"
-              >
-                Login with admin
               </Link>
             </p>
           </div>

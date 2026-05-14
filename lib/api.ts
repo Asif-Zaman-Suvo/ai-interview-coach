@@ -37,12 +37,24 @@ export const api = {
       return res.json();
     }),
 
+  put: <T>(endpoint: string, body: unknown): Promise<T> =>
+    fetch(apiUrl(endpoint), {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }).then((res) => {
+      if (!res.ok) throw new Error(res.statusText);
+      return res.json();
+    }),
+
   delete: <T>(endpoint: string): Promise<T> =>
     fetch(apiUrl(endpoint), {
       method: 'DELETE',
       credentials: 'include',
-    }).then((res) => {
+    }).then(async (res) => {
       if (!res.ok) throw new Error(res.statusText);
-      return res.json();
+      const text = await res.text();
+      return (text ? (JSON.parse(text) as T) : ({} as T));
     }),
 };

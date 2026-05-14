@@ -61,6 +61,13 @@ export default function AdminDashboardPage() {
           <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
           <div className="space-y-2">
             <a
+              href="/admin/roles"
+              className="block px-4 py-2 rounded-lg hover:bg-muted transition-colors"
+            >
+              <div className="text-sm font-medium text-foreground">Job roles</div>
+              <div className="text-xs text-muted-foreground">Create roles for question grouping</div>
+            </a>
+            <a
               href="/admin/users"
               className="block px-4 py-2 rounded-lg hover:bg-muted transition-colors"
             >

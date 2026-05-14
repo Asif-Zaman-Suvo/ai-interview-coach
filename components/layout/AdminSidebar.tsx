@@ -9,6 +9,7 @@ import {
   Users,
   Database,
   BarChart3,
+  Briefcase,
   LogOut,
 } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
@@ -16,9 +17,10 @@ import { Button } from "@/components/ui/button";
 
 const adminNavItems = [
   { href: "/admin/dashboard", label: "Admin Dashboard", icon: BarChart3 },
+  { href: "/admin/roles", label: "Job roles", icon: Briefcase },
   { href: "/admin/users", label: "Users", icon: Users },
-  { href: "/admin/questions", label: "Question Bank", icon: Database },
-  { href: "/admin/stats", label: "System Stats", icon: Shield },
+  { href: "/admin/questions", label: "Question bank", icon: Database },
+  { href: "/admin/stats", label: "System stats", icon: Shield },
 ];
 
 function initialsFromUser(name?: string | null, email?: string | null): string {

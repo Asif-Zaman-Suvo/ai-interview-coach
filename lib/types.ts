@@ -99,7 +99,8 @@ export interface Role {
   name: string;
   icon: string;
   description: string;
-  category: string;
+  /** Present only when roles API adds grouping metadata */
+  category?: string;
 }
 
 // Extended session types for API
@@ -174,11 +175,13 @@ export interface AdminUser {
 // Question bank management
 export interface QuestionBankItem {
   id: string;
+  roleId: string;
   text: string;
   type: 'technical' | 'behavioral';
   difficulty: Difficulty;
+  /** Display name resolved server-side */
   role: string;
-  idealAnswer?: string;
+  idealAnswer: string;
   createdAt?: string;
 }
 

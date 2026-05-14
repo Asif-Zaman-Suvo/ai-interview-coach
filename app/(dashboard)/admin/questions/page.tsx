@@ -2,41 +2,26 @@
 
 import { Card } from "@/components/ui/card";
 import { QuestionsTable } from "@/components/admin/QuestionsTable";
-import { useAdminQuestions, useAddQuestion, useDeleteQuestion } from "@/lib/hooks/useAdmin";
+import {
+  useAdminQuestions,
+  useAddQuestion,
+  useDeleteQuestion,
+  useUpdateQuestion,
+} from "@/lib/hooks/useAdmin";
 
 export default function AdminQuestionsPage() {
   const { data: questions, isLoading, isError } = useAdminQuestions();
   const { mutate: addQuestion } = useAddQuestion();
   const { mutate: deleteQuestion } = useDeleteQuestion();
-
-  const handleAddQuestion = (question: Omit<any, 'id' | 'createdAt'>) => {
-    addQuestion(question, {
-      onSuccess: () => {
-        console.log('Question added successfully');
-      },
-      onError: (error) => {
-        console.error('Failed to add question:', error);
-      },
-    });
-  };
-
-  const handleDeleteQuestion = (questionId: string) => {
-    deleteQuestion(questionId, {
-      onSuccess: () => {
-        console.log('Question deleted successfully');
-      },
-      onError: (error) => {
-        console.error('Failed to delete question:', error);
-      },
-    });
-  };
+  const { mutate: updateQuestion } = useUpdateQuestion();
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Question Bank</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Question bank</h1>
         <p className="text-sm text-muted-foreground">
-          Manage interview questions and content
+          Add technical or behavioral prompts with ideal answers — interviews draw from
+          this pool by role and difficulty.
         </p>
       </div>
 
@@ -45,8 +30,22 @@ export default function AdminQuestionsPage() {
           questions={questions}
           isLoading={isLoading}
           isError={isError}
-          onAdd={handleAddQuestion}
-          onDelete={handleDeleteQuestion}
+          onAdd={(q) =>
+            void addQuestion(q, {
+              onError: console.error,
+            })
+          }
+          onDelete={(id) =>
+            void deleteQuestion(id, {
+              onError: console.error,
+            })
+          }
+          onUpdate={(id, body) =>
+            void updateQuestion(
+              { id, body },
+              { onError: console.error },
+            )
+          }
         />
       </Card>
     </div>
