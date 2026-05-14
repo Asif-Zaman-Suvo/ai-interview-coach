@@ -6,6 +6,7 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { Badge } from "@/components/ui/badge";
 import { useSessionById } from "@/lib/hooks/useHistory";
+import { formatElapsedSeconds } from "@/lib/format-duration";
 import { CheckCircle, TrendingUp, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -172,7 +173,7 @@ export default function InterviewResultPage() {
           <div>
             <p className="text-sm text-muted-foreground">Duration</p>
             <p className="text-lg font-semibold text-foreground">
-              {Math.floor(session.duration / 60)}m {session.duration % 60}s
+              {formatElapsedSeconds(session.duration)}
             </p>
           </div>
           <div>

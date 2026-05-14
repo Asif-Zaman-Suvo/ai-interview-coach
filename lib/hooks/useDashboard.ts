@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { DashboardStats, SessionSummary, ScoreDataPoint } from '@/lib/types';
+import { DashboardStats, ScoreDataPoint } from '@/lib/types';
+import { normalizeSessionSummaryRow } from '@/lib/parse-api-date';
 
 export const useStats = () =>
   useQuery({
@@ -11,7 +12,12 @@ export const useStats = () =>
 export const useRecentSessions = () =>
   useQuery({
     queryKey: ['recent-sessions'],
-    queryFn: () => api.get<SessionSummary[]>('/sessions/recent'),
+    queryFn: async () => {
+      const rows = await api.get<unknown[]>('/sessions/recent');
+      return Array.isArray(rows)
+        ? rows.map((r) => normalizeSessionSummaryRow(r))
+        : [];
+    },
   });
 
 export const useScoreTrend = () =>

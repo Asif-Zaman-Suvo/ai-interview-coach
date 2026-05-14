@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { useSessions } from "@/lib/hooks/useHistory";
+import { formatElapsedMinutes } from "@/lib/format-duration";
+import { formatLocaleDateParts } from "@/lib/parse-api-date";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
@@ -48,27 +50,31 @@ export default function HistoryPage() {
             </div>
 
             {/* Table rows */}
-            {sessions.map((session) => (
+            {sessions.map((session) => {
+              const dp = formatLocaleDateParts(session.date);
+              return (
               <div
                 key={session.id}
                 className="grid grid-cols-5 gap-4 items-center py-3 border-b border-border last:border-0"
               >
                 <div>
-                  <div className="text-sm font-medium text-foreground">{session.role}</div>
+                  <div className="text-sm font-medium text-foreground">
+                    {session.role || 'Unknown'}
+                  </div>
                 </div>
 
                 <div>
                   <div className="text-sm text-foreground">
-                    {new Date(session.date).toLocaleDateString()}
+                    {dp?.dateLine ?? '—'}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {new Date(session.date).toLocaleTimeString()}
+                    {dp?.timeLine ?? ''}
                   </div>
                 </div>
 
                 <div>
                   <div className="text-sm text-foreground">
-                    {Math.floor(session.duration / 60)}m {session.duration % 60}s
+                    {formatElapsedMinutes(session.duration)}
                   </div>
                 </div>
 
@@ -94,7 +100,8 @@ export default function HistoryPage() {
                   </Link>
                 </div>
               </div>
-            ))}
+            );
+            })}
 
             {/* Pagination */}
             {totalPages > 1 && (

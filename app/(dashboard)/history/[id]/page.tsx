@@ -6,6 +6,7 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { Badge } from "@/components/ui/badge";
 import { useSessionById } from "@/lib/hooks/useHistory";
+import { formatElapsedSeconds } from "@/lib/format-duration";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, Clock, CheckCircle } from "lucide-react";
@@ -56,7 +57,7 @@ export default function HistoryDetailPage() {
               <p className="text-sm text-muted-foreground">Duration</p>
             </div>
             <p className="text-lg font-semibold text-foreground">
-              {Math.floor(session.duration / 60)}m {session.duration % 60}s
+              {formatElapsedSeconds(session.duration)}
             </p>
           </div>
 
@@ -110,7 +111,7 @@ export default function HistoryDetailPage() {
                       <p className="text-sm text-foreground">{answer.transcript}</p>
                       <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                         <Clock className="h-3 w-3" />
-                        <span>Duration: {Math.floor(answer.audioDuration / 60)}m {answer.audioDuration % 60}s</span>
+                        <span>Duration: {formatElapsedSeconds(answer.audioDuration ?? 0)}</span>
                       </div>
                     </div>
                   </div>
