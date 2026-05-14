@@ -6,6 +6,7 @@ import { HowItWorks } from "@/components/landing/HowItWorks";
 import { Testimonials } from "@/components/landing/Testimonials";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { CtaBanner } from "@/components/landing/CtaBanner";
+import { loadPublicTestimonials } from "@/lib/load-public-testimonials";
 
 export const metadata: Metadata = {
   title: "Interview Coach — AI mock interviews & feedback",
@@ -13,14 +14,16 @@ export const metadata: Metadata = {
     "Practice interviews with AI, real-time feedback, and personalized coaching. Free to start.",
 };
 
-export default function MarketingHomePage() {
+export default async function MarketingHomePage() {
+  const testimonials = await loadPublicTestimonials();
+
   return (
     <main>
       <HeroSection />
       <StatsBar />
       <FeaturesSection />
       <HowItWorks />
-      <Testimonials />
+      <Testimonials items={testimonials} />
       <PricingSection />
       <CtaBanner />
     </main>

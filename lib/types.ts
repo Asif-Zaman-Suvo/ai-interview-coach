@@ -96,6 +96,15 @@ export interface User {
   createdAt?: string;
 }
 
+/** Published homepage testimonial row from `GET /api/testimonials/public` */
+export interface PublicTestimonial {
+  id: string;
+  rating: number;
+  quote: string;
+  name: string;
+  role: string;
+}
+
 // API Role types (from backend)
 export interface Role {
   id: string;

@@ -40,6 +40,7 @@ import {
 import type { Difficulty, JobRole } from "@/lib/types";
 import { ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TestimonialFeedbackCard } from "@/components/settings/TestimonialFeedbackCard";
 
 const ROLES: JobRole[] = [
   "Frontend Developer",
@@ -181,6 +182,8 @@ export default function SettingsPage() {
           </div>
         </CardFooter>
       </Card>
+
+      <TestimonialFeedbackCard />
 
       {/* Appearance */}
       <Card className="border border-border shadow-none">
