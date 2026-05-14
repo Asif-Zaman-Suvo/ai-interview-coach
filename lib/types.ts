@@ -105,6 +105,21 @@ export interface PublicTestimonial {
   role: string;
 }
 
+/** Anonymous marketing hero stats from `GET /api/marketing/dashboard-preview` */
+export interface LandingDashboardPreview {
+  totals: {
+    totalSessions: number;
+    avgScore: number;
+    bestRole: string | null;
+  };
+  recent: Array<{
+    role: string;
+    score: number;
+    duration: number;
+    date: string;
+  }>;
+}
+
 // API Role types (from backend)
 export interface Role {
   id: string;

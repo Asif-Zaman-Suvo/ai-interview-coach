@@ -1,8 +1,45 @@
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { LandingDashboardPreview } from "@/lib/types";
 
-export function HeroSection() {
+function formatRelativeSessionDay(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function formatCompactDurationSeconds(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds <= 0) return "0m";
+  return `${Math.floor(seconds / 60)}m`;
+}
+
+function scoreBadgeClass(score: number): string {
+  if (score >= 80) {
+    return "bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+  }
+  if (score >= 65) {
+    return "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
+  }
+  return "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+}
+
+export function HeroSection({
+  dashboardPreview,
+}: {
+  dashboardPreview: LandingDashboardPreview;
+}) {
+  const { totals, recent } = dashboardPreview;
+  const avgDisplay =
+    totals.totalSessions > 0 ? `${totals.avgScore}%` : "—";
+  const bestDisplay = totals.bestRole?.trim() || "—";
+
   return (
     <section className="border-b border-border py-16 md:py-24">
       <div className="mx-auto max-w-6xl px-4 md:px-8">
@@ -61,20 +98,24 @@ export function HeroSection() {
                   <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                     Total sessions
                   </p>
-                  <p className="mt-1 text-lg font-semibold text-foreground">12</p>
+                  <p className="mt-1 text-lg font-semibold text-foreground">
+                    {totals.totalSessions}
+                  </p>
                 </div>
                 <div className="rounded-lg border border-border bg-background p-3 shadow-none">
                   <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                     Avg score
                   </p>
-                  <p className="mt-1 text-lg font-semibold text-foreground">78%</p>
+                  <p className="mt-1 text-lg font-semibold text-foreground">
+                    {avgDisplay}
+                  </p>
                 </div>
                 <div className="col-span-2 hidden rounded-lg border border-border bg-background p-3 shadow-none md:block">
                   <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                     Best role
                   </p>
                   <p className="mt-1 truncate text-lg font-semibold text-foreground">
-                    Frontend Developer
+                    {bestDisplay}
                   </p>
                 </div>
                 <div className="col-span-2 rounded-lg border border-border bg-background p-3 shadow-none md:hidden">
@@ -82,7 +123,7 @@ export function HeroSection() {
                     Best role
                   </p>
                   <p className="mt-1 truncate text-lg font-semibold text-foreground">
-                    Frontend Developer
+                    {bestDisplay}
                   </p>
                 </div>
               </div>
@@ -91,45 +132,37 @@ export function HeroSection() {
                   Recent sessions
                 </div>
                 <ul className="divide-y divide-border text-sm">
-                  <li className="flex items-center justify-between gap-2 px-3 py-2.5">
-                    <div className="min-w-0">
-                      <p className="truncate font-medium text-foreground">
-                        Frontend Developer
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Yesterday · 24m
-                      </p>
-                    </div>
-                    <span className="shrink-0 rounded bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                      85%
-                    </span>
-                  </li>
-                  <li className="flex items-center justify-between gap-2 px-3 py-2.5">
-                    <div className="min-w-0">
-                      <p className="truncate font-medium text-foreground">
-                        Product Manager
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        3 days ago · 32m
-                      </p>
-                    </div>
-                    <span className="shrink-0 rounded bg-yellow-50 px-2 py-0.5 text-xs font-semibold text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
-                      72%
-                    </span>
-                  </li>
-                  <li className="flex items-center justify-between gap-2 px-3 py-2.5">
-                    <div className="min-w-0">
-                      <p className="truncate font-medium text-foreground">
-                        Backend Engineer
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        1 week ago · 18m
-                      </p>
-                    </div>
-                    <span className="shrink-0 rounded bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                      91%
-                    </span>
-                  </li>
+                  {recent.length === 0 ? (
+                    <li className="px-3 py-6 text-center text-xs text-muted-foreground">
+                      Completed practice sessions from the community appear
+                      here.
+                    </li>
+                  ) : (
+                    recent.map((session, i) => (
+                      <li
+                        key={`${session.date}-${session.role}-${i}`}
+                        className="flex items-center justify-between gap-2 px-3 py-2.5"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-foreground">
+                            {session.role}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatRelativeSessionDay(session.date)} ·{" "}
+                            {formatCompactDurationSeconds(session.duration)}
+                          </p>
+                        </div>
+                        <span
+                          className={cn(
+                            "shrink-0 rounded px-2 py-0.5 text-xs font-semibold",
+                            scoreBadgeClass(session.score)
+                          )}
+                        >
+                          {session.score}%
+                        </span>
+                      </li>
+                    ))
+                  )}
                 </ul>
               </div>
             </div>

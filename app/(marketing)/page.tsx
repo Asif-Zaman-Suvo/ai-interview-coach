@@ -7,6 +7,7 @@ import { Testimonials } from "@/components/landing/Testimonials";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { CtaBanner } from "@/components/landing/CtaBanner";
 import { loadPublicTestimonials } from "@/lib/load-public-testimonials";
+import { loadLandingDashboardPreview } from "@/lib/load-landing-dashboard-preview";
 
 export const metadata: Metadata = {
   title: "Interview Coach — AI mock interviews & feedback",
@@ -15,11 +16,14 @@ export const metadata: Metadata = {
 };
 
 export default async function MarketingHomePage() {
-  const testimonials = await loadPublicTestimonials();
+  const [testimonials, dashboardPreview] = await Promise.all([
+    loadPublicTestimonials(),
+    loadLandingDashboardPreview(),
+  ]);
 
   return (
     <main>
-      <HeroSection />
+      <HeroSection dashboardPreview={dashboardPreview} />
       <StatsBar />
       <FeaturesSection />
       <HowItWorks />
