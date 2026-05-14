@@ -18,7 +18,7 @@ export function StepIndicator({
           const isCurrent = stepNumber === currentStep;
 
           return (
-            <div key={step} className="flex items-center flex-1">
+            <div key={step} className="flex min-w-0 flex-1 items-start">
               <div className="flex flex-col items-center flex-1">
                 <div
                   className={`flex size-8 items-center justify-center rounded-full text-sm font-medium transition-colors ${
@@ -57,10 +57,9 @@ export function StepIndicator({
               </div>
               {index < steps.length - 1 && (
                 <div
-                  className={`h-px flex-1 mx-2 top-4 transition-colors ${
+                  className={`mx-1 mt-4 h-px min-w-6 flex-1 shrink transition-colors sm:mx-2 ${
                     isCompleted ? "bg-primary" : "bg-border"
                   }`}
-                  style={{ maxWidth: "60px" }}
                 />
               )}
             </div>

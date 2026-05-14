@@ -81,15 +81,17 @@ export function RoleSelection({
 
   return (
     <div className="w-full min-w-0">
-      <h2 className="text-base font-semibold text-foreground mb-4">
+      <h2 className="mb-4 text-lg font-semibold text-foreground">
         Select your target role
       </h2>
       <div
         className={cn(
-          "grid w-full min-w-0 gap-4",
-          roles.length === 1
-            ? "grid-cols-1"
-            : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+          "grid w-full min-w-0 gap-4 md:gap-5",
+          roles.length <= 1 &&
+            "grid-cols-1 justify-items-stretch sm:max-w-2xl",
+          roles.length === 2 && "grid-cols-1 md:grid-cols-2",
+          roles.length > 2 &&
+            "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3",
         )}
       >
         {roles.map((role) => {
@@ -115,8 +117,8 @@ export function RoleSelection({
               role="button"
               aria-pressed={isSelected}
             >
-              <div className="p-4 sm:p-5">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4 min-w-0">
+              <div className="p-5 md:p-6">
+                <div className="flex min-w-0 flex-row items-start gap-4">
                   <RoleIconGlyph icon={role.icon} className="sm:mt-0.5" />
                   <div className="min-w-0 flex-1 space-y-2">
                     <h3
@@ -128,7 +130,7 @@ export function RoleSelection({
                       {role.name}
                     </h3>
                     {role.description ? (
-                      <p className="text-sm leading-relaxed text-pretty text-muted-foreground break-words">
+                      <p className="text-sm leading-relaxed text-muted-foreground text-pretty hyphens-none [overflow-wrap:anywhere]">
                         {role.description}
                       </p>
                     ) : null}

@@ -59,14 +59,19 @@ export function ResumeUpload({ onFileSelect }: ResumeUploadProps) {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0];
-      if (validateFile(selectedFile)) {
-        setFile(selectedFile);
-        onFileSelect(selectedFile);
-      }
+    const input = e.target;
+    const selectedFile = input.files?.[0];
+    if (!selectedFile) return;
+    if (validateFile(selectedFile)) {
+      setFile(selectedFile);
+      onFileSelect(selectedFile);
+    } else {
+      input.value = "";
     }
+  };
+
+  const openFileDialog = () => {
+    inputRef.current?.click();
   };
 
   const handleRemove = () => {
@@ -122,8 +127,11 @@ export function ResumeUpload({ onFileSelect }: ResumeUploadProps) {
             onDragOver={handleDrag}
             onDrop={handleDrop}
           >
-            <label htmlFor="resume-upload" className="cursor-pointer">
-              <div className="flex flex-col items-center justify-center text-center">
+            <div className="flex flex-col items-center justify-center text-center">
+              <label
+                htmlFor="resume-upload"
+                className="cursor-pointer flex flex-col items-center"
+              >
                 <div className="flex size-12 items-center justify-center rounded-full bg-muted mb-3">
                   <Upload className="size-6 text-muted-foreground" />
                 </div>
@@ -133,19 +141,27 @@ export function ResumeUpload({ onFileSelect }: ResumeUploadProps) {
                 <p className="text-xs text-muted-foreground mb-3">
                   PDF or Word, up to 5MB
                 </p>
-                <Button type="button" variant="outline" size="sm">
-                  Browse Files
-                </Button>
-              </div>
+              </label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.preventDefault();
+                  openFileDialog();
+                }}
+              >
+                Browse files
+              </Button>
               <input
                 ref={inputRef}
                 id="resume-upload"
                 type="file"
                 className="sr-only"
-                accept=".pdf,.doc,.docx"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={handleChange}
               />
-            </label>
+            </div>
           </div>
         </Card>
       )}

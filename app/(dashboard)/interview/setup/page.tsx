@@ -89,7 +89,7 @@ export default function InterviewSetupPage() {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-6 py-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 md:px-8">
       <Button
         variant="ghost"
         size="sm"
