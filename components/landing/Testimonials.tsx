@@ -1,31 +1,7 @@
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { PublicTestimonial } from "@/lib/types";
-
-const FALLBACK: PublicTestimonial[] = [
-  {
-    id: "seed-1",
-    rating: 5,
-    quote:
-      "I went from blanking on behavioral questions to confidently nailing them. Got the offer in 3 weeks.",
-    name: "Sarah K.",
-    role: "Frontend Developer at Stripe",
-  },
-  {
-    id: "seed-2",
-    rating: 5,
-    quote:
-      "The resume-based questions were scary accurate. It felt like a real interview. Best free tool I've used.",
-    name: "Marcus T.",
-    role: "Product Manager at Notion",
-  },
-  {
-    id: "seed-3",
-    rating: 5,
-    quote:
-      "Practiced every day for 2 weeks. The progress tracking kept me motivated. Landed my dream job.",
-    name: "Priya R.",
-    role: "Data Scientist at Airbnb",
-  },
-];
 
 function StarRow({ rating }: { rating: number }) {
   const n = Math.min(5, Math.max(0, Math.round(Number(rating)) || 0));
@@ -41,31 +17,56 @@ function StarRow({ rating }: { rating: number }) {
 }
 
 export function Testimonials({ items }: { items: PublicTestimonial[] }) {
-  const list = items.length > 0 ? items : FALLBACK;
-
   return (
-    <section className="border-t border-border py-20 md:py-28">
+    <section
+      id="testimonials"
+      className="border-t border-border py-20 md:py-28"
+    >
       <div className="mx-auto max-w-6xl px-4 md:px-8">
         <h2 className="text-center text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
           Trusted by job seekers
         </h2>
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 md:mt-14 md:grid-cols-3 md:gap-6">
-          {list.map((t) => (
-            <figure
-              key={t.id}
-              className="rounded-lg border border-border bg-card p-5 shadow-none"
+        {items.length === 0 ? (
+          <div className="mx-auto mt-10 max-w-md text-center md:mt-14">
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Real quotes from members show up here. After you sign in, you can
+              add yours from{" "}
+              <Link href="/settings" className="underline underline-offset-4">
+                Settings
+              </Link>
+              .
+            </p>
+            <Link
+              href="/register"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "mt-6 inline-flex"
+              )}
             >
-              <StarRow rating={t.rating} />
-              <blockquote className="mt-3 text-sm italic leading-relaxed text-foreground">
-                “{t.quote}”
-              </blockquote>
-              <figcaption className="mt-4">
-                <p className="text-sm font-medium text-foreground">{t.name}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{t.role}</p>
-              </figcaption>
-            </figure>
-          ))}
-        </div>
+              Create free account
+            </Link>
+          </div>
+        ) : (
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 md:mt-14 md:grid-cols-3 md:gap-6">
+            {items.map((t) => (
+              <figure
+                key={t.id}
+                className="rounded-lg border border-border bg-card p-5 shadow-none"
+              >
+                <StarRow rating={t.rating} />
+                <blockquote className="mt-3 text-sm italic leading-relaxed text-foreground">
+                  “{t.quote}”
+                </blockquote>
+                <figcaption className="mt-4">
+                  <p className="text-sm font-medium text-foreground">{t.name}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {t.role}
+                  </p>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
