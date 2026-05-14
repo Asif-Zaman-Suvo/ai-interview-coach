@@ -77,7 +77,10 @@ export default function AdminStatsPage() {
       {/* Detailed Stats */}
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">User Engagement</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-1">User Engagement</h2>
+          <p className="text-xs text-muted-foreground mb-4">
+            Active users have at least one interview session (started or completed).
+          </p>
           <div className="space-y-4">
             <div>
               <div className="flex items-center justify-between mb-2">

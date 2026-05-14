@@ -27,6 +27,8 @@ export interface Question {
 export interface Answer {
   questionId: string;
   transcript: string;
+  /** Same as transcript; explicit for API/DB clarity */
+  userAnswer?: string;
   audioDuration: number;
   submittedAt: Date;
 }
@@ -65,6 +67,7 @@ export interface SessionSummary {
   role: JobRole | string;
   date: Date | string;
   score: number;
+  /** Total session length (seconds); matches `GET /sessions/:id` `duration`. */
   duration: number;
   status?: InterviewStatus;
   difficulty?: Difficulty;
@@ -111,6 +114,7 @@ export interface Session {
   roleId: string;
   difficulty: Difficulty;
   score: number;
+  /** Elapsed seconds (createdAt → completion or now). */
   duration: number;
   status: 'active' | 'completed';
   startedAt: string | Date;

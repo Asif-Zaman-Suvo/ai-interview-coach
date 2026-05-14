@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { SessionSummary } from "@/lib/types";
+import { formatElapsedSeconds } from "@/lib/format-duration";
 
 interface RecentSessionsTableProps {
   sessions: SessionSummary[];
@@ -31,13 +32,6 @@ const scoreBadge = (score: number) => {
     </span>
   );
 };
-
-function formatDuration(minutes: number): string {
-  if (minutes < 60) return `${minutes}m`;
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-}
 
 function formatDate(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
@@ -116,7 +110,7 @@ export default function RecentSessionsTable({
                   {session.role}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {formatDate(session.date)} · {formatDuration(session.duration)}
+                  {formatDate(session.date)} · {formatElapsedSeconds(session.duration)}
                 </p>
               </div>
               {scoreBadge(session.score)}

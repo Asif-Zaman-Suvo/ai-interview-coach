@@ -11,6 +11,7 @@ import {
 import { Check, Trash2, X } from "lucide-react";
 import { AdminUser } from "@/lib/types";
 import { useEffect, useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 
 function normalizeEmail(email: string | null | undefined): string {
   return (email ?? "").trim().toLowerCase();
@@ -179,7 +180,16 @@ export function UsersTable({
                 key={user.id}
                 className="border-b border-border hover:bg-muted/50"
               >
-                <td className="p-4 text-sm text-foreground">{user.name}</td>
+                <td className="p-4 text-sm text-foreground">
+                  <span className="inline-flex flex-wrap items-center gap-2">
+                    {user.name}
+                    {isRowViewer ? (
+                      <Badge variant="secondary" className="font-normal">
+                        You
+                      </Badge>
+                    ) : null}
+                  </span>
+                </td>
                 <td className="p-4 text-sm text-muted-foreground">{user.email}</td>
                 <td className="p-4">
                   {onRoleChange ? (

@@ -5,21 +5,51 @@ import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { useSessions } from "@/lib/hooks/useHistory";
-import { formatElapsedMinutes } from "@/lib/format-duration";
+import { formatElapsedSeconds } from "@/lib/format-duration";
 import { formatLocaleDateParts } from "@/lib/parse-api-date";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useDeleteInterviewSession } from "@/lib/hooks/useHistory";
+import { toast } from "sonner";
+import type { SessionSummary } from "@/lib/types";
 
 export default function HistoryPage() {
   const [page, setPage] = useState(1);
+  const [pendingDelete, setPendingDelete] = useState<SessionSummary | null>(
+    null,
+  );
   const { data: sessionsData, isLoading, isError } = useSessions(page);
+  const deleteMutation = useDeleteInterviewSession();
 
   if (isLoading) return <LoadingSpinner />;
   if (isError) return <ErrorMessage message="Failed to load interview history" />;
 
   const sessions = sessionsData?.sessions || [];
   const totalPages = sessionsData?.totalPages || 1;
+
+  const confirmDelete = () => {
+    if (!pendingDelete) return;
+    const id = pendingDelete.id;
+    deleteMutation.mutate(id, {
+      onSuccess: () => {
+        setPendingDelete(null);
+        toast.success("Interview deleted");
+      },
+      onError: () => {
+        toast.error("Could not delete this interview");
+      },
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -74,7 +104,7 @@ export default function HistoryPage() {
 
                 <div>
                   <div className="text-sm text-foreground">
-                    {formatElapsedMinutes(session.duration)}
+                    {formatElapsedSeconds(session.duration)}
                   </div>
                 </div>
 
@@ -92,12 +122,23 @@ export default function HistoryPage() {
                   </div>
                 </div>
 
-                <div className="text-right">
+                <div className="text-right flex items-center justify-end gap-2">
                   <Link href={`/history/${session.id}`}>
                     <Button variant="ghost" size="sm">
                       View
                     </Button>
                   </Link>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setPendingDelete(session)}
+                    disabled={
+                      deleteMutation.isPending &&
+                      pendingDelete?.id === session.id
+                    }
+                  >
+                    Delete
+                  </Button>
                 </div>
               </div>
             );
@@ -134,6 +175,35 @@ export default function HistoryPage() {
           </div>
         )}
       </Card>
+
+      <Dialog
+        open={!!pendingDelete}
+        onOpenChange={(open: boolean) => !open && setPendingDelete(null)}
+      >
+        <DialogContent showCloseButton>
+          <DialogHeader>
+            <DialogTitle>Delete interview?</DialogTitle>
+            <DialogDescription>
+              This removes the session &ldquo;
+              {pendingDelete?.role ?? "session"}&rdquo; and all answers from
+              your history. You cannot undo this.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter showCloseButton={false} className="border-0 bg-transparent p-0 sm:justify-end">
+            <DialogClose render={<Button variant="outline" size="sm" />}>
+              Cancel
+            </DialogClose>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={deleteMutation.isPending}
+              onClick={confirmDelete}
+            >
+              {deleteMutation.isPending ? "Deleting…" : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

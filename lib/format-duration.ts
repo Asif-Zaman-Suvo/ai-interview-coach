@@ -9,7 +9,7 @@ export function formatElapsedSeconds(seconds: unknown): string {
   return `${m}m ${r}s`;
 }
 
-/** Wall-clock-ish minutes bucket (dashboard /sessions/recent & list API `duration`). */
+/** Whole minutes bucket (sessions list/recent APIs use seconds; prefer `formatElapsedSeconds`). */
 export function formatElapsedMinutes(minutesUnknown: unknown): string {
   const minutes =
     typeof minutesUnknown === 'number' && Number.isFinite(minutesUnknown)

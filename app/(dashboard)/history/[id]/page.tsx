@@ -5,16 +5,29 @@ import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { Badge } from "@/components/ui/badge";
-import { useSessionById } from "@/lib/hooks/useHistory";
 import { formatElapsedSeconds } from "@/lib/format-duration";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Clock, CheckCircle } from "lucide-react";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useDeleteInterviewSession, useSessionById } from "@/lib/hooks/useHistory";
+import { toast } from "sonner";
 
 export default function HistoryDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const sessionId = params.id as string;
-
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const deleteMutation = useDeleteInterviewSession();
   const { data: session, isLoading, isError } = useSessionById(sessionId);
 
   if (isLoading) return <LoadingSpinner />;
@@ -163,14 +176,57 @@ export default function HistoryDetailPage() {
       </Card>
 
       {/* Actions */}
-      <div className="flex items-center justify-center gap-4">
+      <div className="flex items-center justify-center gap-4 flex-wrap">
         <Link href="/interview/setup">
           <Button>New Interview</Button>
         </Link>
         <Link href={`/interview/result/${session.id}`}>
           <Button variant="outline">View Results</Button>
         </Link>
+        <Button
+          variant="destructive"
+          onClick={() => setDeleteOpen(true)}
+          disabled={deleteMutation.isPending}
+        >
+          Delete interview
+        </Button>
       </div>
+
+      <Dialog open={deleteOpen} onOpenChange={(o: boolean) => !o && setDeleteOpen(false)}>
+        <DialogContent showCloseButton>
+          <DialogHeader>
+            <DialogTitle>Delete this interview?</DialogTitle>
+            <DialogDescription>
+              Permanently remove this session and all stored answers. This cannot
+              be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter showCloseButton={false} className="border-0 bg-transparent p-0 sm:justify-end">
+            <DialogClose render={<Button variant="outline" size="sm" />}>
+              Cancel
+            </DialogClose>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={deleteMutation.isPending}
+              onClick={() => {
+                deleteMutation.mutate(sessionId, {
+                  onSuccess: () => {
+                    setDeleteOpen(false);
+                    toast.success("Interview deleted");
+                    router.push("/history");
+                  },
+                  onError: () => {
+                    toast.error("Could not delete this interview");
+                  },
+                });
+              }}
+            >
+              {deleteMutation.isPending ? "Deleting…" : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

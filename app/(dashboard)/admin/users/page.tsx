@@ -16,14 +16,29 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
+import { api } from "@/lib/api";
 
 export default function AdminUsersPage() {
   const { data: users, isLoading, isError } = useAdminUsers();
   const { mutate: changeRole, isPending: rolePending } = useChangeRole();
   const { mutate: deleteUser } = useDeleteUser();
-  const { data: session } = authClient.useSession();
+  const { data: authSession } = authClient.useSession();
+  const { data: authMe } = useQuery({
+    queryKey: ["auth-user"],
+    queryFn: () =>
+      api.get<{ user?: { email?: string } }>("/auth/me"),
+    staleTime: 60_000,
+    enabled: !!authSession?.user,
+  });
+
+  /** Prefer `/auth/me` so viewer matches server session + normalized login email */
+  const viewerEmail =
+    (typeof authMe?.user?.email === "string" && authMe.user.email.trim()
+      ? authMe.user.email
+      : authSession?.user?.email?.trim()) || null;
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -68,7 +83,7 @@ export default function AdminUsersPage() {
           users={users}
           isLoading={isLoading}
           isError={isError}
-          viewerEmail={session?.user?.email ?? null}
+          viewerEmail={viewerEmail}
           roleUpdatePending={rolePending}
           onRoleChange={handleRoleChange}
           onDelete={handleDeleteClick}
