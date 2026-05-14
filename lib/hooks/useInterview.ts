@@ -26,6 +26,7 @@ export const useStartSession = () => {
       queryClient.invalidateQueries({ queryKey: ['recent-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['stats'] });
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['session-quota'] });
     },
     onError: (error: unknown) => {
       const msg =
@@ -59,6 +60,7 @@ export const useCompleteSession = (sessionId: string) => {
       queryClient.invalidateQueries({ queryKey: ['stats'] });
       queryClient.invalidateQueries({ queryKey: ['score-trend'] });
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['session-quota'] });
     },
   });
 };

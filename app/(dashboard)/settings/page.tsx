@@ -39,6 +39,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { Difficulty, JobRole } from "@/lib/types";
+import { PLAN_LABEL } from "@/lib/types";
 import { ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TestimonialFeedbackCard } from "@/components/settings/TestimonialFeedbackCard";
@@ -49,6 +50,7 @@ import {
   useUpdateSettings,
   useDeleteAccount,
 } from "@/lib/hooks/useAppSettings";
+import { useSessionQuota } from "@/lib/hooks/useDashboard";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 
@@ -101,6 +103,7 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { data, isLoading, isError, refetch } = useAppSettings();
+  const { data: quota } = useSessionQuota();
   const { mutate: patch, isPending: patchPending } = useUpdateSettings();
   const { mutateAsync: deleteAccount, isPending: deletePending } =
     useDeleteAccount();
@@ -168,6 +171,42 @@ export default function SettingsPage() {
           Account, preferences, and privacy controls
         </p>
       </div>
+
+      <Card className="border border-border shadow-none">
+        <CardHeader>
+          <CardTitle>Plan</CardTitle>
+          <CardDescription>
+            Free: 3 interviews · ৳300 pack: 10 · ৳2,000 pack: 30. Limits are
+            total sessions on your account until you move to a larger pack.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <p className="text-foreground">
+            Current plan:{" "}
+            <span className="font-medium">{PLAN_LABEL[data.plan]}</span>
+          </p>
+          {quota ? (
+            <p className="text-muted-foreground">
+              Sessions used: {quota.sessionsUsed} of {quota.sessionLimit}
+            </p>
+          ) : null}
+          {quota && !quota.canStartNewSession ? (
+            <p className="pt-1">
+              <Link
+                href="/#pricing"
+                className={cn(
+                  buttonVariants({ variant: "default", size: "sm" }),
+                  "no-underline",
+                )}
+              >
+                {data.plan === "pack_30"
+                  ? "View packs & billing"
+                  : "Get a larger pack"}
+              </Link>
+            </p>
+          ) : null}
+        </CardContent>
+      </Card>
 
       <Card className="border border-border shadow-none">
         <CardHeader>

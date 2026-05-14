@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { DashboardStats, ScoreDataPoint } from '@/lib/types';
+import { DashboardStats, ScoreDataPoint, SessionQuota } from '@/lib/types';
 import { normalizeSessionSummaryRow } from '@/lib/parse-api-date';
 
 export const useStats = () =>
@@ -24,4 +24,10 @@ export const useScoreTrend = () =>
   useQuery({
     queryKey: ['score-trend'],
     queryFn: () => api.get<ScoreDataPoint[]>('/sessions/score-trend'),
+  });
+
+export const useSessionQuota = () =>
+  useQuery({
+    queryKey: ['session-quota'],
+    queryFn: () => api.get<SessionQuota>('/sessions/quota'),
   });

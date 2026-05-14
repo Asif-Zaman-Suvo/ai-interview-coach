@@ -61,8 +61,11 @@ export function TestimonialFeedbackCard() {
           update it anytime; one submission per account.
         </CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
+      <form
+        className="flex min-w-0 flex-col"
+        onSubmit={handleSubmit}
+      >
+        <CardContent className="space-y-4 pb-2">
           {isLoading ? (
             <div className="h-24 rounded-lg bg-muted/60 animate-pulse" />
           ) : null}
@@ -101,9 +104,11 @@ export function TestimonialFeedbackCard() {
             />
             <p className="text-xs text-muted-foreground">{quote.length}/600</p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="testimonial-name">Name (shown publicly)</Label>
+          <div className="grid w-full min-w-0 grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2 md:items-start">
+            <div className="min-w-0 space-y-2">
+              <Label htmlFor="testimonial-name" className="block w-full">
+                Name (shown publicly)
+              </Label>
               <Input
                 id="testimonial-name"
                 value={authorName}
@@ -113,10 +118,13 @@ export function TestimonialFeedbackCard() {
                 maxLength={80}
                 required
                 autoComplete="name"
+                className="w-full max-w-full"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="testimonial-role">Title &amp; company</Label>
+            <div className="min-w-0 space-y-2">
+              <Label htmlFor="testimonial-role" className="block w-full">
+                Title &amp; company
+              </Label>
               <Input
                 id="testimonial-role"
                 value={authorRole}
@@ -125,11 +133,12 @@ export function TestimonialFeedbackCard() {
                 minLength={2}
                 maxLength={120}
                 required
+                className="w-full max-w-full"
               />
             </div>
           </div>
         </CardContent>
-        <CardFooter className="border-t bg-muted/30 flex flex-col gap-4 p-6 sm:flex-row sm:items-end sm:justify-between">
+        <CardFooter className="mt-6 border-t bg-muted/30 flex flex-col gap-4 p-6 sm:flex-row sm:items-end sm:justify-between">
           <p className="text-xs leading-relaxed text-muted-foreground max-w-xl text-pretty">
             Submissions are public on the marketing site. Use initials if you
             prefer not to share your full name.

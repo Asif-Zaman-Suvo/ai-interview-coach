@@ -5,6 +5,7 @@ import { UsersTable } from "@/components/admin/UsersTable";
 import {
   useAdminUsers,
   useChangeRole,
+  useChangeUserPlan,
   useDeleteUser,
 } from "@/lib/hooks/useAdmin";
 import { useState } from "react";
@@ -20,10 +21,12 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { api } from "@/lib/api";
+import type { UserPlan } from "@/lib/types";
 
 export default function AdminUsersPage() {
   const { data: users, isLoading, isError } = useAdminUsers();
   const { mutate: changeRole, isPending: rolePending } = useChangeRole();
+  const { mutate: changePlan, isPending: planPending } = useChangeUserPlan();
   const { mutate: deleteUser } = useDeleteUser();
   const { data: authSession } = authClient.useSession();
   const { data: authMe } = useQuery({
@@ -48,6 +51,10 @@ export default function AdminUsersPage() {
     newRole: "user" | "admin",
   ) => {
     changeRole({ id: userId, role: newRole });
+  };
+
+  const handlePlanChange = (userId: string, plan: UserPlan) => {
+    changePlan({ id: userId, plan });
   };
 
   const handleDeleteClick = (userId: string) => {
@@ -85,7 +92,9 @@ export default function AdminUsersPage() {
           isError={isError}
           viewerEmail={viewerEmail}
           roleUpdatePending={rolePending}
+          planUpdatePending={planPending}
           onRoleChange={handleRoleChange}
+          onPlanChange={handlePlanChange}
           onDelete={handleDeleteClick}
         />
       </Card>

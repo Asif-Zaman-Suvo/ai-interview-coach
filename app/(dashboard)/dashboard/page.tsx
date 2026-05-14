@@ -5,14 +5,17 @@ import RecentSessionsTable from "@/components/dashboard/RecentSessionsTable";
 import { ScoreTrendChart } from "@/components/dashboard/ScoreTrendChart";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
-import { buttonVariants } from "@/components/ui/button";
-import { useStats, useRecentSessions, useScoreTrend } from "@/lib/hooks/useDashboard";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { useStats, useRecentSessions, useScoreTrend, useSessionQuota } from "@/lib/hooks/useDashboard";
 import Link from "next/link";
 
 export default function DashboardPage() {
   const { data: stats, isLoading: statsLoading, isError: statsError } = useStats();
   const { data: recentSessions, isLoading: sessionsLoading, isError: sessionsError } = useRecentSessions();
   const { data: scoreTrend, isLoading: trendLoading, isError: trendError } = useScoreTrend();
+  const { data: quota } = useSessionQuota();
+
+  const atLimit = Boolean(quota && !quota.canStartNewSession);
 
   if (statsLoading || sessionsLoading || trendLoading) {
     return (
@@ -40,20 +43,45 @@ export default function DashboardPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
           <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Track your interview preparation progress
           </p>
         </div>
-        <Link
-          href="/interview/setup"
-          className={buttonVariants({ variant: "default", size: "sm" })}
-        >
-          Start new interview
-        </Link>
+        {atLimit ? (
+          <Button size="sm" disabled title="Purchase a pack with more interviews to continue">
+            Start new interview
+          </Button>
+        ) : (
+          <Link
+            href="/interview/setup"
+            className={buttonVariants({ variant: "default", size: "sm" })}
+          >
+            Start new interview
+          </Link>
+        )}
       </div>
+
+      {atLimit && quota ? (
+        <div
+          className="rounded-lg border border-amber-500/35 bg-amber-500/10 px-4 py-3 text-sm text-foreground"
+          role="status"
+        >
+          <p className="font-medium">Interview limit reached</p>
+          <p className="mt-1 text-muted-foreground">
+            You&apos;ve used all {quota.sessionLimit} interviews in your current pack.{" "}
+            <Link
+              href="/#pricing"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Get a larger pack
+            </Link>{" "}
+            to continue.
+          </p>
+        </div>
+      ) : null}
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

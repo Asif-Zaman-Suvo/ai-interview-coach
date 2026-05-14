@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "@/components/layout/ThemeToggle";
+import { authClient } from "@/lib/auth-client";
+import { userDisplayName } from "@/lib/user-display-name";
 
 const navLinks = [
   { href: "#features", label: "Features" },
@@ -21,6 +23,9 @@ const navLinks = [
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
+  const { data: session } = authClient.useSession();
+  const authedUser = session?.user;
+  const isAuthed = !!authedUser;
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm">
@@ -53,18 +58,37 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Link
-            href="/login"
-            className={buttonVariants({ variant: "ghost", size: "sm" })}
-          >
-            Sign in
-          </Link>
-          <Link
-            href="/register"
-            className={buttonVariants({ variant: "default", size: "sm" })}
-          >
-            Get started free
-          </Link>
+          {isAuthed ? (
+            <>
+              <span
+                className="max-w-[12rem] truncate text-sm font-medium text-foreground"
+                title={authedUser.email ?? undefined}
+              >
+                {userDisplayName(authedUser)}
+              </span>
+              <Link
+                href="/dashboard"
+                className={buttonVariants({ variant: "default", size: "sm" })}
+              >
+                Dashboard
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className={buttonVariants({ variant: "ghost", size: "sm" })}
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/register"
+                className={buttonVariants({ variant: "default", size: "sm" })}
+              >
+                Get started free
+              </Link>
+            </>
+          )}
           <div className="ml-2 max-w-[11rem] shrink-0 border-l border-border pl-3">
             <ThemeToggle />
           </div>
@@ -102,23 +126,43 @@ export function Navbar() {
                   </a>
                 ))}
                 <div className="my-2 border-t border-border" />
-                <Link
-                  href="/login"
-                  className="rounded-md px-3 py-2.5 text-sm text-foreground hover:bg-muted"
-                  onClick={() => setOpen(false)}
-                >
-                  Sign in
-                </Link>
-                <Link
-                  href="/register"
-                  className={cn(
-                    buttonVariants({ variant: "default", size: "sm" }),
-                    "mx-1 mt-1 justify-center"
-                  )}
-                  onClick={() => setOpen(false)}
-                >
-                  Get started free
-                </Link>
+                {isAuthed ? (
+                  <>
+                    <p className="px-3 py-2 text-sm font-medium text-foreground">
+                      {userDisplayName(authedUser)}
+                    </p>
+                    <Link
+                      href="/dashboard"
+                      className={cn(
+                        buttonVariants({ variant: "default", size: "sm" }),
+                        "mx-1 justify-center"
+                      )}
+                      onClick={() => setOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="rounded-md px-3 py-2.5 text-sm text-foreground hover:bg-muted"
+                      onClick={() => setOpen(false)}
+                    >
+                      Sign in
+                    </Link>
+                    <Link
+                      href="/register"
+                      className={cn(
+                        buttonVariants({ variant: "default", size: "sm" }),
+                        "mx-1 mt-1 justify-center"
+                      )}
+                      onClick={() => setOpen(false)}
+                    >
+                      Get started free
+                    </Link>
+                  </>
+                )}
                 <div className="mt-4 border-t border-border px-1 pt-3">
                   <ThemeToggle />
                 </div>

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
+import { userDisplayName } from "@/lib/user-display-name";
 
 const adminNavItems = [
   { href: "/admin/dashboard", label: "Admin Dashboard", icon: BarChart3 },
@@ -41,7 +42,7 @@ export default function AdminSidebar() {
   const router = useRouter();
   const { data: session } = authClient.useSession();
   const user = session?.user;
-  const displayName = user?.name ?? user?.email ?? "Admin";
+  const displayName = user ? userDisplayName(user) : "Admin";
   const initials = initialsFromUser(user?.name ?? null, user?.email ?? null);
 
   async function handleSignOut() {
@@ -52,15 +53,17 @@ export default function AdminSidebar() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div className="flex items-center gap-2 px-4 h-12 border-b border-border shrink-0">
+      <Link
+        href="/"
+        className="flex shrink-0 items-center gap-2 px-4 h-12 border-b border-border outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      >
         <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
-          <Shield className="size-3 text-primary-foreground" />
+          <Shield className="size-3 text-primary-foreground" aria-hidden />
         </div>
         <span className="text-sm font-semibold text-foreground">
           Admin Panel
         </span>
-      </div>
+      </Link>
 
       {/* Admin badge */}
       <div className="px-4 py-2 bg-blue-500/10 border-b border-border">

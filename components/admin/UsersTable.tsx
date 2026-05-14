@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Check, Trash2, X } from "lucide-react";
-import { AdminUser } from "@/lib/types";
+import type { AdminUser, UserPlan } from "@/lib/types";
 import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 
@@ -19,6 +19,43 @@ function normalizeEmail(email: string | null | undefined): string {
 
 function committedRole(u: AdminUser): "user" | "admin" {
   return u.role === "admin" ? "admin" : "user";
+}
+
+function committedPlan(u: AdminUser): UserPlan {
+  if (u.plan === "pack_10" || u.plan === "pack_30") return u.plan;
+  return "free";
+}
+
+function UserPlanSelect({
+  user,
+  disabled,
+  onPlanChange,
+}: {
+  user: AdminUser;
+  disabled?: boolean;
+  onPlanChange: (userId: string, plan: UserPlan) => void;
+}) {
+  const plan = committedPlan(user);
+  return (
+    <Select
+      value={plan}
+      disabled={disabled}
+      onValueChange={(v) => onPlanChange(user.id, v as UserPlan)}
+    >
+      <SelectTrigger
+        className="w-[min(100%,11rem)]"
+        aria-label={`Plan for ${user.email}`}
+        size="sm"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="free">Free (3)</SelectItem>
+        <SelectItem value="pack_10">৳300 (10)</SelectItem>
+        <SelectItem value="pack_30">৳2k (30)</SelectItem>
+      </SelectContent>
+    </Select>
+  );
 }
 
 function RoleSelectWithConfirm({
@@ -112,7 +149,10 @@ interface UsersTableProps {
   viewerEmail?: string | null;
   /** While a role PUT is in flight */
   roleUpdatePending?: boolean;
+  /** While a billing plan PUT is in flight */
+  planUpdatePending?: boolean;
   onRoleChange?: (userId: string, newRole: "user" | "admin") => void;
+  onPlanChange?: (userId: string, plan: UserPlan) => void;
   onDelete?: (userId: string) => void;
 }
 
@@ -122,7 +162,9 @@ export function UsersTable({
   isError,
   viewerEmail,
   roleUpdatePending,
+  planUpdatePending,
   onRoleChange,
+  onPlanChange,
   onDelete,
 }: UsersTableProps) {
   const adminCount = useMemo(
@@ -156,6 +198,9 @@ export function UsersTable({
             </th>
             <th className="text-left p-4 text-sm font-medium text-foreground">
               Role
+            </th>
+            <th className="text-left p-4 text-sm font-medium text-foreground">
+              Plan
             </th>
             <th className="text-left p-4 text-sm font-medium text-foreground">
               Sessions
@@ -208,6 +253,19 @@ export function UsersTable({
                     <p className="mt-1 text-xs text-muted-foreground">
                       Promote another admin before demoting yourself.
                     </p>
+                  )}
+                </td>
+                <td className="p-4">
+                  {onPlanChange ? (
+                    <UserPlanSelect
+                      user={user}
+                      disabled={!!planUpdatePending}
+                      onPlanChange={onPlanChange}
+                    />
+                  ) : (
+                    <span className="text-sm capitalize text-foreground">
+                      {committedPlan(user)}
+                    </span>
                   )}
                 </td>
                 <td className="p-4 text-sm text-muted-foreground">

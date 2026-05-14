@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { StepIndicator } from "@/components/interview/StepIndicator";
 import { RoleSelection } from "@/components/interview/RoleSelection";
@@ -11,6 +12,7 @@ import { InterviewSummary } from "@/components/interview/InterviewSummary";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { JobRole, Difficulty, Role } from "@/lib/types";
 import { useRoles, useStartSession } from "@/lib/hooks/useInterview";
+import { useSessionQuota } from "@/lib/hooks/useDashboard";
 
 const steps = ["Role", "Difficulty", "Resume", "Summary"];
 
@@ -20,10 +22,12 @@ export default function InterviewSetupPage() {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
-  const [resumeText, setResumeText] = useState<string>("");
 
   const { data: roles, isLoading: rolesLoading } = useRoles();
   const { mutate: startSession, isPending: isStarting } = useStartSession();
+  const { data: quota } = useSessionQuota();
+
+  const atLimit = Boolean(quota && !quota.canStartNewSession);
 
   const canProceed = () => {
     switch (currentStep) {
@@ -107,6 +111,25 @@ export default function InterviewSetupPage() {
         </p>
       </div>
 
+      {atLimit && quota ? (
+        <div
+          className="mb-6 rounded-lg border border-amber-500/35 bg-amber-500/10 px-4 py-3 text-sm text-foreground"
+          role="status"
+        >
+          <p className="font-medium">Interview limit reached</p>
+          <p className="mt-1 text-muted-foreground">
+            You&apos;ve used all {quota.sessionLimit} interviews in your current pack.{" "}
+            <Link
+              href="/#pricing"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Get a larger pack
+            </Link>{" "}
+            to continue.
+          </p>
+        </div>
+      ) : null}
+
       <StepIndicator
         currentStep={currentStep}
         totalSteps={steps.length}
@@ -154,7 +177,11 @@ export default function InterviewSetupPage() {
           variant="default"
           size="sm"
           onClick={handleNext}
-          disabled={!canProceed() || isStarting}
+          disabled={
+            !canProceed() ||
+            isStarting ||
+            (currentStep === steps.length && atLimit)
+          }
         >
           {isStarting ? (
             <>

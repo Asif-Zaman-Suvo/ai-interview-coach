@@ -9,6 +9,22 @@ export type JobRole =
 
 export type Difficulty = "Easy" | "Medium" | "Hard";
 
+export type UserPlan = "free" | "pack_10" | "pack_30";
+
+/** Session caps per plan (must match backend `SESSION_LIMIT_BY_PLAN`). */
+export const PLAN_SESSION_CAP: Record<UserPlan, number> = {
+  free: 3,
+  pack_10: 10,
+  pack_30: 30,
+};
+
+/** Short labels for dashboards / admin. */
+export const PLAN_LABEL: Record<UserPlan, string> = {
+  free: "Free · 3 interviews",
+  pack_10: "৳300 · 10 interviews",
+  pack_30: "৳2,000 · 30 interviews",
+};
+
 export type InterviewStatus = "pending" | "in_progress" | "completed";
 
 export type Category =
@@ -120,10 +136,19 @@ export interface LandingDashboardPreview {
   }>;
 }
 
+/** `GET /sessions/quota` */
+export interface SessionQuota {
+  plan: UserPlan;
+  sessionsUsed: number;
+  sessionLimit: number;
+  canStartNewSession: boolean;
+}
+
 /** `GET/PATCH /settings` */
 export interface AppUserSettings {
   email: string;
   name: string;
+  plan: UserPlan;
   weeklyDigest: boolean;
   sessionReminders: boolean;
   productTips: boolean;
@@ -206,7 +231,8 @@ export interface AdminUser {
   id: string;
   name: string;
   email: string;
-  role: 'user' | 'admin';
+  role: "user" | "admin";
+  plan: UserPlan;
   createdAt: string;
   sessionsCount?: number;
 }
