@@ -204,7 +204,7 @@ export function UsersTable({
                   {user.sessionsCount ?? 0}
                 </td>
                 <td className="p-4">
-                  {onDelete && (
+                  {onDelete && !isRowViewer ? (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -214,7 +214,14 @@ export function UsersTable({
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
-                  )}
+                  ) : onDelete && isRowViewer ? (
+                    <span
+                      className="text-xs text-muted-foreground"
+                      title="You cannot delete your own account here"
+                    >
+                      —
+                    </span>
+                  ) : null}
                 </td>
               </tr>
             );
