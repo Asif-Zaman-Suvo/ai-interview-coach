@@ -129,12 +129,17 @@ export function TestimonialFeedbackCard() {
             </div>
           </div>
         </CardContent>
-        <CardFooter className="border-t bg-muted/30 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-muted-foreground">
+        <CardFooter className="border-t bg-muted/30 flex flex-col gap-4 p-6 sm:flex-row sm:items-end sm:justify-between">
+          <p className="text-xs leading-relaxed text-muted-foreground max-w-xl text-pretty">
             Submissions are public on the marketing site. Use initials if you
             prefer not to share your full name.
           </p>
-          <Button type="submit" size="sm" disabled={isSubmitting || isLoading}>
+          <Button
+            type="submit"
+            size="sm"
+            className="w-full shrink-0 sm:w-auto"
+            disabled={isSubmitting || isLoading}
+          >
             {existing ? "Update testimonial" : "Submit testimonial"}
           </Button>
         </CardFooter>

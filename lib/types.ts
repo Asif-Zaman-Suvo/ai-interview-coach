@@ -120,6 +120,17 @@ export interface LandingDashboardPreview {
   }>;
 }
 
+/** `GET/PATCH /settings` */
+export interface AppUserSettings {
+  email: string;
+  name: string;
+  weeklyDigest: boolean;
+  sessionReminders: boolean;
+  productTips: boolean;
+  interviewDefaultRole: string | null;
+  interviewDefaultDifficulty: string | null;
+}
+
 // API Role types (from backend)
 export interface Role {
   id: string;

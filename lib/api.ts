@@ -45,16 +45,20 @@ export const api = {
     return text ? (JSON.parse(text) as T) : ({} as T);
   },
 
-  patch: <T>(endpoint: string, body: unknown): Promise<T> =>
-    fetch(apiUrl(endpoint), {
+  patch: async <T>(endpoint: string, body: unknown): Promise<T> => {
+    const res = await fetch(apiUrl(endpoint), {
       method: 'PATCH',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-    }).then((res) => {
-      if (!res.ok) throw new Error(res.statusText);
-      return res.json();
-    }),
+    });
+    const text = await res.text();
+    if (!res.ok) {
+      const fromBody = text ? nestErrorMessage(text) : null;
+      throw new Error(fromBody ?? res.statusText ?? 'Request failed');
+    }
+    return text ? (JSON.parse(text) as T) : ({} as T);
+  },
 
   put: async <T>(endpoint: string, body: unknown): Promise<T> => {
     const res = await fetch(apiUrl(endpoint), {
