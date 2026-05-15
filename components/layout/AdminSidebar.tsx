@@ -11,6 +11,7 @@ import {
   BarChart3,
   Briefcase,
   LogOut,
+  Settings,
 } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import { userDisplayName } from "@/lib/user-display-name";
 
 const adminNavItems = [
   { href: "/admin/dashboard", label: "Admin Dashboard", icon: BarChart3 },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
   { href: "/admin/roles", label: "Job roles", icon: Briefcase },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/questions", label: "Question bank", icon: Database },

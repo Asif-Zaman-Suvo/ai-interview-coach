@@ -325,7 +325,7 @@ export function CheckoutClient({
                 <span className="mt-1.5 block">
                   {checkoutPlanNotice(quota, packId, tier.headline)}{" "}
                   <Link
-                    href="/settings#plan"
+                    href="/admin/settings"
                     className="font-medium text-primary underline-offset-4 hover:underline"
                   >
                     View in Settings

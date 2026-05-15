@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -22,21 +21,27 @@ import {
 import { useSessionQuota } from "@/lib/hooks/useDashboard";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
-import { PLAN_LABEL } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { SettingsSharedSections } from "@/components/settings/SettingsSharedSections";
-import { fetchAuthMe } from "@/lib/auth-me";
+import {
+  BarChart3,
+  Briefcase,
+  ChevronRight,
+  Database,
+  Shield,
+  Users,
+} from "lucide-react";
 
-export default function SettingsPage() {
+const adminShortcuts = [
+  { href: "/admin/dashboard", label: "Admin dashboard", icon: BarChart3 },
+  { href: "/admin/roles", label: "Job roles", icon: Briefcase },
+  { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/questions", label: "Question bank", icon: Database },
+  { href: "/admin/stats", label: "System stats", icon: Shield },
+] as const;
+
+export default function AdminSettingsPage() {
   const router = useRouter();
-  const { data: session } = authClient.useSession();
-  const { data: me, isPending: mePending } = useQuery({
-    queryKey: ["auth-user"],
-    queryFn: fetchAuthMe,
-    enabled: !!session?.user,
-    retry: false,
-  });
-
   const { data, isLoading, isError, refetch } = useAppSettings();
   const { data: quota } = useSessionQuota();
   const { mutate: patch, isPending: patchPending } = useUpdateSettings();
@@ -45,14 +50,6 @@ export default function SettingsPage() {
 
   const [displayName, setDisplayName] = useState("");
   const [deletePassword, setDeletePassword] = useState("");
-
-  const isAdmin = me?.user?.role === "admin";
-
-  useEffect(() => {
-    if (isAdmin) {
-      router.replace("/admin/settings");
-    }
-  }, [isAdmin, router]);
 
   useEffect(() => {
     if (data?.name != null) setDisplayName(data.name);
@@ -81,22 +78,6 @@ export default function SettingsPage() {
     }
   }
 
-  if (session?.user && mePending) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  if (isAdmin) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
@@ -119,45 +100,67 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
+        <h1 className="text-2xl font-semibold text-foreground">
+          Admin settings
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Account, preferences, and privacy controls
+          Administrator account, moderation shortcuts, and your personal
+          preferences.
         </p>
       </div>
 
-      <Card id="plan" className="border border-border shadow-none">
+      <Card id="account" className="border border-border shadow-none">
         <CardHeader>
-          <CardTitle>Plan</CardTitle>
+          <CardTitle>Administrator account</CardTitle>
           <CardDescription>
-            Free: 3 interviews · ৳300 pack: 10 · ৳2,000 pack: 30. Limits are
-            total sessions on your account until you move to a larger pack.
+            No interview caps — practice sessions are unlimited for this role.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <p className="text-foreground">
-            Current plan:{" "}
-            <span className="font-medium">{PLAN_LABEL[data.plan]}</span>
+            <span className="font-medium">Administrator</span>
+            <span className="text-muted-foreground">
+              {" "}
+              — unlimited interviews
+            </span>
           </p>
           {quota ? (
             <p className="text-muted-foreground">
-              Sessions used: {quota.sessionsUsed} of {quota.sessionLimit}
+              Sessions completed:{" "}
+              <span className="tabular-nums font-medium text-foreground">
+                {quota.sessionsUsed}
+              </span>
             </p>
-          ) : null}
-          {quota && !quota.canStartNewSession ? (
-            <p className="pt-1">
-              <Link
-                href="/checkout?pack=pack_10"
-                className={cn(
-                  buttonVariants({ variant: "default", size: "sm" }),
-                  "no-underline",
-                )}
-              >
-                {data.plan === "pack_30"
-                  ? "View packs & billing"
-                  : "Get a larger pack"}
-              </Link>
-            </p>
-          ) : null}
+          ) : (
+            <p className="text-muted-foreground">Loading usage…</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="border border-border shadow-none">
+        <CardHeader>
+          <CardTitle>Admin tools</CardTitle>
+          <CardDescription>
+            Jump to moderation and configuration in the admin panel.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-2 sm:grid-cols-2">
+          {adminShortcuts.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "h-auto justify-between gap-2 py-3 font-normal no-underline",
+              )}
+            >
+              <span className="flex items-center gap-2">
+                <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                {label}
+              </span>
+              <ChevronRight className="size-4 shrink-0 opacity-50" aria-hidden />
+            </Link>
+          ))}
         </CardContent>
       </Card>
 

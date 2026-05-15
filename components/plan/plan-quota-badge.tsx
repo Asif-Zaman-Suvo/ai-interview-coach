@@ -47,7 +47,7 @@ export function PlanQuotaBadge({
     if (variant === "block") {
       return (
         <Link
-          href="/settings#plan"
+          href="/admin/settings"
           className={cn(
             "block rounded-md border border-border bg-muted/30 px-3 py-2 text-xs transition-colors hover:bg-muted/50",
             className,
@@ -72,7 +72,7 @@ export function PlanQuotaBadge({
     }
     return (
       <Link
-        href="/settings#plan"
+        href="/admin/settings"
         className={cn(
           "inline-flex max-w-[12rem] shrink-0 items-center truncate rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:bg-primary/15",
           className,

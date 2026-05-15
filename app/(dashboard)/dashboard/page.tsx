@@ -65,10 +65,10 @@ export default function DashboardPage() {
                 </span>
                 {" · "}
                 <Link
-                  href="/settings#plan"
+                  href="/admin/settings"
                   className="text-primary underline-offset-4 hover:underline"
                 >
-                  Plan info
+                  Admin settings
                 </Link>
               </p>
             ) : (

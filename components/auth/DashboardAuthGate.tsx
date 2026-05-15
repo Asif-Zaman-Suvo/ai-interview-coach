@@ -4,14 +4,10 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { authClient } from "@/lib/auth-client";
-import { api } from "@/lib/api";
+import { fetchAuthMe } from "@/lib/auth-me";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export type DashboardGateVariant = "user" | "admin";
-
-async function fetchMe(): Promise<{ user?: { role?: string } }> {
-  return api.get("/auth/me");
-}
 
 export default function DashboardAuthGate({
   children,
@@ -28,7 +24,7 @@ export default function DashboardAuthGate({
 
   const { data: me, isPending: mePending } = useQuery({
     queryKey: ["auth-user"],
-    queryFn: fetchMe,
+    queryFn: fetchAuthMe,
     enabled: !!session?.user,
     retry: false,
   });

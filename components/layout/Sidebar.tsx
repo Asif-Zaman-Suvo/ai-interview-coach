@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
@@ -18,8 +19,9 @@ import ThemeToggle from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { PlanQuotaBadge } from "@/components/plan/plan-quota-badge";
 import { userDisplayName } from "@/lib/user-display-name";
+import { useSessionQuota } from "@/lib/hooks/useDashboard";
 
-const navItems = [
+const navBase = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/interview/setup", label: "New interview", icon: Plus },
   { href: "/history", label: "History", icon: Clock },
@@ -48,6 +50,16 @@ export default function Sidebar() {
   const user = session?.user;
   const displayName = userDisplayName(user);
   const initials = initialsFromUser(user?.name ?? null, user?.email ?? null);
+  const { data: quota } = useSessionQuota(!!user);
+  const settingsHref = quota?.adminUnlimited ? "/admin/settings" : "/settings";
+
+  const navItems = useMemo(
+    () =>
+      navBase.map((item) =>
+        item.label === "Settings" ? { ...item, href: settingsHref } : item,
+      ),
+    [settingsHref],
+  );
 
   async function handleSignOut() {
     await authClient.signOut();
@@ -73,10 +85,12 @@ export default function Sidebar() {
       <nav className="flex-1 px-2 py-3 space-y-0.5">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active =
-            pathname === href ||
-            (pathname?.startsWith(href + "/") ?? false);
+            label === "Settings"
+              ? pathname === "/settings" || pathname === "/admin/settings"
+              : pathname === href ||
+                (pathname?.startsWith(href + "/") ?? false);
           return (
-            <Link key={href} href={href}>
+            <Link key={`${label}-${href}`} href={href}>
               <span
                 className={cn(
                   "flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm transition-colors",
