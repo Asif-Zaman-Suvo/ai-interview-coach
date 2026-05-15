@@ -36,7 +36,7 @@ export function MicButton({
           "size-20 rounded-full transition-all duration-300",
           isRecording
             ? "bg-destructive hover:bg-destructive/90 scale-105"
-            : "bg-primary hover:bg-primary/90"
+            : "bg-primary hover:bg-primary/90",
         )}
       >
         {isRecording ? (
@@ -53,7 +53,7 @@ export function MicButton({
               key={i}
               className={cn(
                 "w-1 bg-primary rounded-full transition-all duration-300",
-                isRecording ? "animate-pulse" : ""
+                isRecording ? "animate-pulse" : "",
               )}
               style={{
                 height: isRecording ? `${16 + Math.random() * 16}px` : "4px",

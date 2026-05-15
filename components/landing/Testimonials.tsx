@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import { Reveal } from "@/components/motion/reveal";
 import { cn } from "@/lib/utils";
 import type { PublicTestimonial } from "@/lib/types";
 
@@ -23,11 +24,13 @@ export function Testimonials({ items }: { items: PublicTestimonial[] }) {
       className="border-t border-border py-20 md:py-28"
     >
       <div className="mx-auto max-w-6xl px-4 md:px-8">
-        <h2 className="text-center text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
-          Trusted by job seekers
-        </h2>
+        <Reveal className="text-center">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+            Trusted by job seekers
+          </h2>
+        </Reveal>
         {items.length === 0 ? (
-          <div className="mx-auto mt-10 max-w-md text-center md:mt-14">
+          <Reveal className="mx-auto mt-10 max-w-md text-center md:mt-14">
             <p className="text-sm leading-relaxed text-muted-foreground">
               Real quotes from members show up here. After you sign in, you can
               add yours from{" "}
@@ -45,25 +48,28 @@ export function Testimonials({ items }: { items: PublicTestimonial[] }) {
             >
               Create free account
             </Link>
-          </div>
+          </Reveal>
         ) : (
           <div className="mt-10 grid gap-5 sm:grid-cols-2 md:mt-14 md:grid-cols-3 md:gap-6">
-            {items.map((t) => (
-              <figure
+            {items.map((t, i) => (
+              <Reveal
                 key={t.id}
-                className="rounded-lg border border-border bg-card p-5 shadow-none"
+                className="rounded-lg border border-border bg-card p-5 shadow-none transition-shadow duration-300 hover:shadow-md dark:hover:shadow-primary/5"
+                delay={i * 0.07}
               >
-                <StarRow rating={t.rating} />
-                <blockquote className="mt-3 text-sm italic leading-relaxed text-foreground">
-                  “{t.quote}”
-                </blockquote>
-                <figcaption className="mt-4">
-                  <p className="text-sm font-medium text-foreground">{t.name}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {t.role}
-                  </p>
-                </figcaption>
-              </figure>
+                <figure>
+                  <StarRow rating={t.rating} />
+                  <blockquote className="mt-3 text-sm italic leading-relaxed text-foreground">
+                    “{t.quote}”
+                  </blockquote>
+                  <figcaption className="mt-4">
+                    <p className="text-sm font-medium text-foreground">{t.name}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {t.role}
+                    </p>
+                  </figcaption>
+                </figure>
+              </Reveal>
             ))}
           </div>
         )}

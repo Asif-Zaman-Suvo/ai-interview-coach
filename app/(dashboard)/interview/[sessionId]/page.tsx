@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,50 @@ import { ProgressPanel } from "@/components/interview/ProgressPanel";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { ChevronLeft } from "lucide-react";
-import { useSessionDetail, useSubmitAnswer, useCompleteSession } from "@/lib/hooks/useInterview";
+import {
+  useSessionDetail,
+  useSubmitAnswer,
+  useCompleteSession,
+} from "@/lib/hooks/useInterview";
 import { AnswerFeedback } from "@/lib/types";
+
+const noopSubscribe = () => () => {};
+
+type SpeechRecognitionResultEvent = {
+  resultIndex: number;
+  results: {
+    length: number;
+    [i: number]: { isFinal: boolean; 0: { transcript: string } };
+  };
+};
+
+type SpeechRecognitionErrorLike = { error: string };
+
+type SpeechRecognitionLike = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start: () => void;
+  stop: () => void;
+  onresult: ((event: SpeechRecognitionResultEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorLike) => void) | null;
+  onend: (() => void) | null;
+};
+
+type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
+
+function readWebSpeechSupported(): boolean {
+  if (typeof window === "undefined") return false;
+  const win = window as Window & {
+    SpeechRecognition?: SpeechRecognitionCtor;
+    webkitSpeechRecognition?: SpeechRecognitionCtor;
+  };
+  return !!(win.SpeechRecognition ?? win.webkitSpeechRecognition);
+}
+
+function useWebSpeechSupported() {
+  return useSyncExternalStore(noopSubscribe, readWebSpeechSupported, () => true);
+}
 
 export default function LiveInterviewPage() {
   const params = useParams();
@@ -21,9 +63,15 @@ export default function LiveInterviewPage() {
   const sessionId = params.sessionId as string;
 
   // Query hooks
-  const { data: session, isLoading: sessionLoading, isError: sessionError } = useSessionDetail(sessionId);
-  const { mutate: submitAnswer, isPending: submitting } = useSubmitAnswer(sessionId);
-  const { mutate: completeSession, isPending: completing } = useCompleteSession(sessionId);
+  const {
+    data: session,
+    isLoading: sessionLoading,
+    isError: sessionError,
+  } = useSessionDetail(sessionId);
+  const { mutate: submitAnswer, isPending: submitting } =
+    useSubmitAnswer(sessionId);
+  const { mutate: completeSession, isPending: completing } =
+    useCompleteSession(sessionId);
 
   // Local state
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -32,68 +80,71 @@ export default function LiveInterviewPage() {
   const [sessionTime, setSessionTime] = useState(0);
   const [feedback, setFeedback] = useState<AnswerFeedback | null>(null);
   const [answeredCount, setAnsweredCount] = useState(0);
-  const [browserSupported, setBrowserSupported] = useState(true);
-  const [recognition, setRecognition] = useState<any>(null);
+  const browserSupported = useWebSpeechSupported();
 
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const isRecordingRef = useRef(false);
 
-  // Initialize Web Speech API
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    isRecordingRef.current = isRecording;
+  }, [isRecording]);
 
-      if (!SpeechRecognition) {
-        setBrowserSupported(false);
-        return;
+  // Initialize Web Speech API (instance kept on ref — no sync setState in effect)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const win = window as Window & {
+      SpeechRecognition?: SpeechRecognitionCtor;
+      webkitSpeechRecognition?: SpeechRecognitionCtor;
+    };
+    const SpeechRecognitionCtor =
+      win.SpeechRecognition ?? win.webkitSpeechRecognition;
+
+    if (!SpeechRecognitionCtor) return;
+
+    const recognitionInstance = new SpeechRecognitionCtor();
+    recognitionInstance.continuous = true;
+    recognitionInstance.interimResults = true;
+    recognitionInstance.lang = "en-US";
+
+    recognitionInstance.onresult = (event: SpeechRecognitionResultEvent) => {
+      let final = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const chunk = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          final += chunk;
+        }
       }
 
-      const recognitionInstance = new SpeechRecognition();
-      recognitionInstance.continuous = true;
-      recognitionInstance.interimResults = true;
-      recognitionInstance.lang = 'en-US';
+      if (final) {
+        setTranscript((prev) => prev + final);
+      }
+    };
 
-      recognitionInstance.onresult = (event: any) => {
-        let final = '';
+    recognitionInstance.onerror = (event: SpeechRecognitionErrorLike) => {
+      console.error("Speech recognition error:", event.error);
+      setIsRecording(false);
+    };
 
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            final += transcript;
-          }
+    recognitionInstance.onend = () => {
+      if (isRecordingRef.current) {
+        try {
+          recognitionInstance.start();
+        } catch {
+          /* already started */
         }
+      }
+    };
 
-        if (final) {
-          setTranscript((prev) => prev + final);
-        }
-      };
-
-      recognitionInstance.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
-        setIsRecording(false);
-      };
-
-      recognitionInstance.onend = () => {
-        if (isRecording) {
-          // Restart if still supposed to be recording
-          try {
-            recognitionInstance.start();
-          } catch (e) {
-            // Already started or error
-          }
-        }
-      };
-
-      setRecognition(recognitionInstance);
-      recognitionRef.current = recognitionInstance;
-    }
+    recognitionRef.current = recognitionInstance;
 
     return () => {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (e) {
-          // Already stopped
-        }
+      recognitionRef.current = null;
+      try {
+        recognitionInstance.stop();
+      } catch {
+        /* already stopped */
       }
     };
   }, []);
@@ -109,6 +160,7 @@ export default function LiveInterviewPage() {
 
   // Handle recording toggle
   const handleToggleRecording = () => {
+    const recognition = recognitionRef.current;
     if (!recognition || !browserSupported) return;
 
     if (isRecording) {
@@ -137,9 +189,9 @@ export default function LiveInterviewPage() {
           setAnsweredCount((prev) => prev + 1);
         },
         onError: (error) => {
-          console.error('Failed to submit answer:', error);
+          console.error("Failed to submit answer:", error);
         },
-      }
+      },
     );
   };
 
@@ -164,7 +216,7 @@ export default function LiveInterviewPage() {
         router.push(`/interview/result/${sessionId}`);
       },
       onError: (error) => {
-        console.error('Failed to complete session:', error);
+        console.error("Failed to complete session:", error);
       },
     });
   };
@@ -194,16 +246,14 @@ export default function LiveInterviewPage() {
       {/* Header */}
       <div className="shrink-0 border-b border-border py-4 -mx-6 px-6 md:-mx-8 md:px-8">
         <div className="flex items-center justify-between gap-4 max-w-6xl mx-auto w-full">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.back()}
-          >
+          <Button variant="ghost" size="sm" onClick={() => router.back()}>
             <ChevronLeft className="size-4" />
             Exit
           </Button>
           <div>
-            <h1 className="text-xl font-semibold text-foreground">Live Interview</h1>
+            <h1 className="text-xl font-semibold text-foreground">
+              Live Interview
+            </h1>
             <p className="text-sm text-muted-foreground">
               Question {currentQuestionIndex + 1} of {session.questions.length}
             </p>
@@ -215,8 +265,9 @@ export default function LiveInterviewPage() {
       {!browserSupported && (
         <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 m-4 rounded-lg">
           <p className="text-sm text-yellow-600 dark:text-yellow-400">
-            <strong>Browser not supported:</strong> Voice recognition only works in Chrome-based browsers.
-            Please switch to Chrome for the best experience.
+            <strong>Browser not supported:</strong> Voice recognition only works
+            in Chrome-based browsers. Please switch to Chrome for the best
+            experience.
           </p>
         </div>
       )}
@@ -241,10 +292,7 @@ export default function LiveInterviewPage() {
               onToggle={handleToggleRecording}
             />
 
-            <TranscriptArea
-              transcript={transcript}
-              isListening={isRecording}
-            />
+            <TranscriptArea transcript={transcript} isListening={isRecording} />
 
             {feedback && (
               <FeedbackCard
@@ -261,7 +309,7 @@ export default function LiveInterviewPage() {
                 disabled={submitting}
                 className="w-full"
               >
-                {submitting ? 'Submitting...' : 'Submit Answer'}
+                {submitting ? "Submitting..." : "Submit Answer"}
               </Button>
             )}
 
@@ -271,7 +319,7 @@ export default function LiveInterviewPage() {
                 disabled={completing}
                 className="w-full"
               >
-                {feedback.nextQuestion ? 'Next Question' : 'Complete Session'}
+                {feedback.nextQuestion ? "Next Question" : "Complete Session"}
               </Button>
             )}
           </div>

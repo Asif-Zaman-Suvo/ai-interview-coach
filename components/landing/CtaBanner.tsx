@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { Reveal } from "@/components/motion/reveal";
 import { cn } from "@/lib/utils";
 
 export function CtaBanner() {
   return (
     <section className="border-t border-border bg-primary py-16 md:py-20">
-      <div className="mx-auto max-w-6xl px-4 text-center md:px-8">
+      <Reveal className="mx-auto max-w-6xl px-4 text-center md:px-8">
         <h2 className="text-2xl font-semibold tracking-tight text-primary-foreground md:text-3xl">
           Ready to land your dream job?
         </h2>
@@ -19,7 +20,7 @@ export function CtaBanner() {
         >
           Start for free today
         </Link>
-      </div>
+      </Reveal>
     </section>
   );
 }

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "@/components/layout/ThemeToggle";
+import { SmoothScrollHashLink } from "@/components/motion/smooth-scroll-hash-link";
 import { authClient } from "@/lib/auth-client";
 import { userDisplayName } from "@/lib/user-display-name";
 
@@ -47,13 +48,13 @@ export function Navbar() {
           aria-label="Primary"
         >
           {navLinks.map((link) => (
-            <a
+            <SmoothScrollHashLink
               key={link.href}
               href={link.href}
               className="text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               {link.label}
-            </a>
+            </SmoothScrollHashLink>
           ))}
         </nav>
 
@@ -116,14 +117,14 @@ export function Navbar() {
               </SheetHeader>
               <nav className="flex flex-col gap-1 p-2" aria-label="Mobile primary">
                 {navLinks.map((link) => (
-                  <a
+                  <SmoothScrollHashLink
                     key={link.href}
                     href={link.href}
                     className="rounded-md px-3 py-2.5 text-sm text-foreground hover:bg-muted"
-                    onClick={() => setOpen(false)}
+                    onBeforeScroll={() => setOpen(false)}
                   >
                     {link.label}
-                  </a>
+                  </SmoothScrollHashLink>
                 ))}
                 <div className="my-2 border-t border-border" />
                 {isAuthed ? (

@@ -87,6 +87,12 @@
     color: hsl(var(--foreground));
   }
 
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
   /*
    * Pointer on interactive controls (buttons, links, common form controls).
    * Disabled / non-interactive inputs are excluded.

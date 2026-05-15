@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import { Reveal } from "@/components/motion/reveal";
+import { SmoothScrollHashLink } from "@/components/motion/smooth-scroll-hash-link";
 import { cn } from "@/lib/utils";
 import type { LandingDashboardPreview } from "@/lib/types";
 
@@ -43,7 +45,7 @@ export function HeroSection({
   return (
     <section className="border-b border-border py-16 md:py-24">
       <div className="mx-auto max-w-6xl px-4 md:px-8">
-        <div className="mx-auto max-w-3xl text-center">
+        <Reveal className="mx-auto max-w-3xl text-center">
           <p className="mb-4 inline-flex items-center rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
             AI-powered interview preparation
           </p>
@@ -66,7 +68,7 @@ export function HeroSection({
             >
               Start practicing free
             </Link>
-            <a
+            <SmoothScrollHashLink
               href="#how-it-works"
               className={cn(
                 buttonVariants({ variant: "ghost", size: "lg" }),
@@ -74,15 +76,15 @@ export function HeroSection({
               )}
             >
               See how it works
-            </a>
+            </SmoothScrollHashLink>
           </div>
           <p className="mt-6 text-xs text-muted-foreground">
             ✓ No credit card &nbsp;&nbsp; ✓ Free forever &nbsp;&nbsp; ✓ 5 min
             setup
           </p>
-        </div>
+        </Reveal>
 
-        <div className="mx-auto mt-14 max-w-4xl md:mt-20">
+        <Reveal className="mx-auto mt-14 max-w-4xl md:mt-20" delay={0.12}>
           <div className="overflow-hidden rounded-lg border border-border bg-card shadow-none">
             <div className="flex h-9 items-center gap-1.5 border-b border-border bg-muted/60 px-3">
               <span className="size-2.5 rounded-full bg-border" aria-hidden />
@@ -167,7 +169,7 @@ export function HeroSection({
               </div>
             </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

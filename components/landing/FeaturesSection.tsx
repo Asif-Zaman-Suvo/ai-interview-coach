@@ -6,6 +6,7 @@ import {
   Zap,
   BookOpen,
 } from "lucide-react";
+import { Reveal } from "@/components/motion/reveal";
 
 const features = [
   {
@@ -48,21 +49,27 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="py-20 md:py-28">
+    <section
+      id="features"
+      className="scroll-mt-24 py-20 md:scroll-mt-28 md:py-28"
+    >
       <div className="mx-auto max-w-6xl px-4 md:px-8">
-        <p className="mb-3 text-center text-xs font-medium uppercase tracking-widest text-muted-foreground">
-          Features
-        </p>
-        <h2 className="text-center text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
-          Everything you need to ace your interview
-        </h2>
+        <Reveal className="text-center">
+          <p className="mb-3 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            Features
+          </p>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+            Everything you need to ace your interview
+          </h2>
+        </Reveal>
         <div className="mt-10 grid gap-5 sm:grid-cols-2 md:mt-14 md:grid-cols-3 md:gap-6">
-          {features.map((f) => {
+          {features.map((f, i) => {
             const Icon = f.icon;
             return (
-              <div
+              <Reveal
                 key={f.title}
-                className="rounded-lg border border-border bg-card p-5 shadow-none"
+                className="rounded-lg border border-border bg-card p-5 shadow-none transition-shadow duration-300 hover:shadow-md dark:hover:shadow-primary/5"
+                delay={i * 0.06}
               >
                 <div className="mb-3 flex size-8 items-center justify-center rounded-md bg-muted">
                   <Icon className="size-4 text-foreground" aria-hidden />
@@ -73,7 +80,7 @@ export function FeaturesSection() {
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   {f.description}
                 </p>
-              </div>
+              </Reveal>
             );
           })}
         </div>
