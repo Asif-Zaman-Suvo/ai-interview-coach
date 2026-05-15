@@ -26,8 +26,9 @@ export const useScoreTrend = () =>
     queryFn: () => api.get<ScoreDataPoint[]>('/sessions/score-trend'),
   });
 
-export const useSessionQuota = () =>
+export const useSessionQuota = (enabled = true) =>
   useQuery({
     queryKey: ['session-quota'],
     queryFn: () => api.get<SessionQuota>('/sessions/quota'),
+    enabled,
   });

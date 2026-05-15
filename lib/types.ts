@@ -25,6 +25,13 @@ export const PLAN_LABEL: Record<UserPlan, string> = {
   pack_30: "৳2,000 · 30 interviews",
 };
 
+/** Compact chip text (nav / sidebars). */
+export const PLAN_TITLE: Record<UserPlan, string> = {
+  free: "Free",
+  pack_10: "৳300 pack",
+  pack_30: "৳2k pack",
+};
+
 export type InterviewStatus = "pending" | "in_progress" | "completed";
 
 export type Category =
@@ -142,6 +149,8 @@ export interface SessionQuota {
   sessionsUsed: number;
   sessionLimit: number;
   canStartNewSession: boolean;
+  /** Present when the profile role is admin — interview caps are bypassed. */
+  adminUnlimited?: boolean;
 }
 
 /** `GET/PATCH /settings` */
@@ -232,7 +241,8 @@ export interface AdminUser {
   name: string;
   email: string;
   role: "user" | "admin";
-  plan: UserPlan;
+  /** Learners only; `null` for administrators (no billing plan). */
+  plan: UserPlan | null;
   createdAt: string;
   sessionsCount?: number;
 }

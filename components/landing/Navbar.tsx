@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Mic, Menu } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import { SmoothScrollHashLink } from "@/components/motion/smooth-scroll-hash-link";
+import { PlanQuotaBadge } from "@/components/plan/plan-quota-badge";
 import { authClient } from "@/lib/auth-client";
 import { userDisplayName } from "@/lib/user-display-name";
 
@@ -24,9 +25,16 @@ const navLinks = [
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { data: session } = authClient.useSession();
   const authedUser = session?.user;
-  const isAuthed = !!authedUser;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  /** Avoid hydration mismatch: SSR has no session cookie context for this tree. */
+  const isAuthed = mounted && !!authedUser;
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm">
@@ -61,6 +69,7 @@ export function Navbar() {
         <div className="hidden items-center gap-2 md:flex">
           {isAuthed ? (
             <>
+              <PlanQuotaBadge variant="compact" />
               <span
                 className="max-w-[12rem] truncate text-sm font-medium text-foreground"
                 title={authedUser.email ?? undefined}
@@ -129,6 +138,9 @@ export function Navbar() {
                 <div className="my-2 border-t border-border" />
                 {isAuthed ? (
                   <>
+                    <div className="px-2 pb-3">
+                      <PlanQuotaBadge variant="block" />
+                    </div>
                     <p className="px-3 py-2 text-sm font-medium text-foreground">
                       {userDisplayName(authedUser)}
                     </p>

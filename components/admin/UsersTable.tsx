@@ -9,7 +9,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Check, Trash2, X } from "lucide-react";
-import type { AdminUser, UserPlan } from "@/lib/types";
+import type { AdminUser } from "@/lib/types";
+import { PLAN_LABEL } from "@/lib/types";
 import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 
@@ -21,40 +22,21 @@ function committedRole(u: AdminUser): "user" | "admin" {
   return u.role === "admin" ? "admin" : "user";
 }
 
-function committedPlan(u: AdminUser): UserPlan {
-  if (u.plan === "pack_10" || u.plan === "pack_30") return u.plan;
-  return "free";
-}
-
-function UserPlanSelect({
-  user,
-  disabled,
-  onPlanChange,
-}: {
-  user: AdminUser;
-  disabled?: boolean;
-  onPlanChange: (userId: string, plan: UserPlan) => void;
-}) {
-  const plan = committedPlan(user);
+function AdminUserPlanCell({ user }: { user: AdminUser }) {
+  if (user.role === "admin") {
+    return (
+      <div className="max-w-[14rem] text-sm">
+        <span className="text-muted-foreground tabular-nums">—</span>
+        <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
+          Administrators don&apos;t have a billing plan.
+        </p>
+      </div>
+    );
+  }
+  const p =
+    user.plan === "pack_10" || user.plan === "pack_30" ? user.plan : "free";
   return (
-    <Select
-      value={plan}
-      disabled={disabled}
-      onValueChange={(v) => onPlanChange(user.id, v as UserPlan)}
-    >
-      <SelectTrigger
-        className="w-[min(100%,11rem)]"
-        aria-label={`Plan for ${user.email}`}
-        size="sm"
-      >
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="free">Free (3)</SelectItem>
-        <SelectItem value="pack_10">৳300 (10)</SelectItem>
-        <SelectItem value="pack_30">৳2k (30)</SelectItem>
-      </SelectContent>
-    </Select>
+    <span className="text-sm font-medium text-foreground">{PLAN_LABEL[p]}</span>
   );
 }
 
@@ -149,10 +131,7 @@ interface UsersTableProps {
   viewerEmail?: string | null;
   /** While a role PUT is in flight */
   roleUpdatePending?: boolean;
-  /** While a billing plan PUT is in flight */
-  planUpdatePending?: boolean;
   onRoleChange?: (userId: string, newRole: "user" | "admin") => void;
-  onPlanChange?: (userId: string, plan: UserPlan) => void;
   onDelete?: (userId: string) => void;
 }
 
@@ -162,9 +141,7 @@ export function UsersTable({
   isError,
   viewerEmail,
   roleUpdatePending,
-  planUpdatePending,
   onRoleChange,
-  onPlanChange,
   onDelete,
 }: UsersTableProps) {
   const adminCount = useMemo(
@@ -200,7 +177,8 @@ export function UsersTable({
               Role
             </th>
             <th className="text-left p-4 text-sm font-medium text-foreground">
-              Plan
+              Plan{" "}
+              <span className="font-normal text-muted-foreground">(view only)</span>
             </th>
             <th className="text-left p-4 text-sm font-medium text-foreground">
               Sessions
@@ -215,9 +193,7 @@ export function UsersTable({
             const isRowViewer =
               viewer.length > 0 && normalizeEmail(user.email) === viewer;
             const soleAdminCannotDemote = Boolean(
-              isRowViewer &&
-                user.role === "admin" &&
-                adminCount <= 1,
+              isRowViewer && user.role === "admin" && adminCount <= 1,
             );
 
             return (
@@ -255,18 +231,8 @@ export function UsersTable({
                     </p>
                   )}
                 </td>
-                <td className="p-4">
-                  {onPlanChange ? (
-                    <UserPlanSelect
-                      user={user}
-                      disabled={!!planUpdatePending}
-                      onPlanChange={onPlanChange}
-                    />
-                  ) : (
-                    <span className="text-sm capitalize text-foreground">
-                      {committedPlan(user)}
-                    </span>
-                  )}
+                <td className="p-4 align-top">
+                  <AdminUserPlanCell user={user} />
                 </td>
                 <td className="p-4 text-sm text-muted-foreground">
                   {user.sessionsCount ?? 0}

@@ -3,72 +3,7 @@ import { Check } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Reveal } from "@/components/motion/reveal";
 import { cn } from "@/lib/utils";
-
-type PricingTier = {
-  id: string;
-  price: string;
-  priceNote: string;
-  headline: string;
-  featured: boolean;
-  badge?: string;
-  cta: string;
-  ctaVariant: "outline" | "default";
-  href: string;
-  features: readonly string[];
-};
-
-const tiers: PricingTier[] = [
-  {
-    id: "free",
-    price: "৳0",
-    priceNote: "Free forever",
-    headline: "3 interviews",
-    featured: false,
-    cta: "Get started free",
-    ctaVariant: "outline",
-    href: "/register",
-    features: [
-      "3 practice interviews (lifetime)",
-      "Transcript & basic feedback — essential tools only",
-    ],
-  },
-  {
-    id: "pack_10",
-    price: "৳300",
-    priceNote: "one-time pack",
-    headline: "10 interviews",
-    featured: true,
-    badge: "Popular",
-    cta: "Choose this pack",
-    ctaVariant: "default",
-    href: "/register",
-    features: [
-      "10 practice interviews",
-      "All job roles & difficulty levels",
-      "Resume-based, tailored questions",
-      "Detailed AI feedback, scores & progress tracking",
-    ],
-  },
-  {
-    id: "pack_30",
-    price: "৳2,000",
-    priceNote: "one-time pack",
-    headline: "30 interviews",
-    featured: false,
-    cta: "Choose this pack",
-    ctaVariant: "default",
-    href: "/register",
-    features: [
-      "30 practice interviews",
-      "Everything in the ৳300 pack, expanded limits",
-      "Richer AI feedback & session summaries",
-      "Competency-style insights & weaker-area hints",
-      "Longer history, streaks & performance trends",
-      "Resume + role depth for senior-style rounds",
-      "Priority help when you’re stuck",
-    ],
-  },
-];
+import { PRICING_TIERS, tierHref } from "@/lib/pricing-packs";
 
 export function PricingSection() {
   return (
@@ -87,7 +22,7 @@ export function PricingSection() {
         </Reveal>
 
         <div className="mx-auto mt-10 grid max-w-5xl gap-6 md:mt-14 md:grid-cols-3">
-          {tiers.map((tier, i) => {
+          {PRICING_TIERS.map((tier, i) => {
             const featured = tier.featured;
             return (
               <Reveal key={tier.id} className="h-full" delay={i * 0.08}>
@@ -133,7 +68,7 @@ export function PricingSection() {
                     ))}
                   </ul>
                   <Link
-                    href={tier.href}
+                    href={tierHref(tier.id)}
                     className={cn(
                       buttonVariants({
                         variant: tier.ctaVariant,

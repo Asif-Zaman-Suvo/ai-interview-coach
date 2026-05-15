@@ -13,6 +13,7 @@ import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { JobRole, Difficulty, Role } from "@/lib/types";
 import { useRoles, useStartSession } from "@/lib/hooks/useInterview";
 import { useSessionQuota } from "@/lib/hooks/useDashboard";
+import { PLAN_LABEL } from "@/lib/types";
 
 const steps = ["Role", "Difficulty", "Resume", "Summary"];
 
@@ -27,7 +28,9 @@ export default function InterviewSetupPage() {
   const { mutate: startSession, isPending: isStarting } = useStartSession();
   const { data: quota } = useSessionQuota();
 
-  const atLimit = Boolean(quota && !quota.canStartNewSession);
+  const atLimit = Boolean(
+    quota && !quota.adminUnlimited && !quota.canStartNewSession,
+  );
 
   const canProceed = () => {
     switch (currentStep) {
@@ -109,6 +112,31 @@ export default function InterviewSetupPage() {
         <p className="text-sm text-muted-foreground mt-1">
           Set up your personalized interview session
         </p>
+        {quota ? (
+          quota.adminUnlimited ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">Administrator</span>
+              {" — unlimited interviews"}
+              {quota.sessionsUsed > 0 ? (
+                <span className="tabular-nums">
+                  {" "}
+                  · {quota.sessionsUsed} completed
+                </span>
+              ) : null}
+            </p>
+          ) : (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Active plan:{" "}
+              <span className="font-medium text-foreground">
+                {PLAN_LABEL[quota.plan]}
+              </span>
+              <span className="tabular-nums">
+                {" "}
+                · {quota.sessionsUsed}/{quota.sessionLimit} used
+              </span>
+            </p>
+          )
+        ) : null}
       </div>
 
       {atLimit && quota ? (
@@ -120,7 +148,7 @@ export default function InterviewSetupPage() {
           <p className="mt-1 text-muted-foreground">
             You&apos;ve used all {quota.sessionLimit} interviews in your current pack.{" "}
             <Link
-              href="/#pricing"
+              href="/checkout?pack=pack_10"
               className="font-medium text-primary underline-offset-4 hover:underline"
             >
               Get a larger pack

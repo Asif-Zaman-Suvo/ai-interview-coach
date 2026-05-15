@@ -7,6 +7,7 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useStats, useRecentSessions, useScoreTrend, useSessionQuota } from "@/lib/hooks/useDashboard";
+import { PLAN_LABEL } from "@/lib/types";
 import Link from "next/link";
 
 export default function DashboardPage() {
@@ -15,7 +16,9 @@ export default function DashboardPage() {
   const { data: scoreTrend, isLoading: trendLoading, isError: trendError } = useScoreTrend();
   const { data: quota } = useSessionQuota();
 
-  const atLimit = Boolean(quota && !quota.canStartNewSession);
+  const atLimit = Boolean(
+    quota && !quota.adminUnlimited && !quota.canStartNewSession,
+  );
 
   if (statsLoading || sessionsLoading || trendLoading) {
     return (
@@ -49,6 +52,45 @@ export default function DashboardPage() {
           <p className="text-sm text-muted-foreground mt-1">
             Track your interview preparation progress
           </p>
+          {quota ? (
+            quota.adminUnlimited ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">
+                  Administrator
+                </span>
+                {" — unlimited interviews"}
+                <span className="tabular-nums">
+                  {" "}
+                  · {quota.sessionsUsed} completed
+                </span>
+                {" · "}
+                <Link
+                  href="/settings#plan"
+                  className="text-primary underline-offset-4 hover:underline"
+                >
+                  Plan info
+                </Link>
+              </p>
+            ) : (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Active plan:{" "}
+                <span className="font-medium text-foreground">
+                  {PLAN_LABEL[quota.plan]}
+                </span>
+                <span className="tabular-nums">
+                  {" "}
+                  · {quota.sessionsUsed}/{quota.sessionLimit} interviews used
+                </span>
+                {" · "}
+                <Link
+                  href="/settings#plan"
+                  className="text-primary underline-offset-4 hover:underline"
+                >
+                  Manage plan
+                </Link>
+              </p>
+            )
+          ) : null}
         </div>
         {atLimit ? (
           <Button size="sm" disabled title="Purchase a pack with more interviews to continue">
@@ -73,7 +115,7 @@ export default function DashboardPage() {
           <p className="mt-1 text-muted-foreground">
             You&apos;ve used all {quota.sessionLimit} interviews in your current pack.{" "}
             <Link
-              href="/#pricing"
+              href="/checkout?pack=pack_10"
               className="font-medium text-primary underline-offset-4 hover:underline"
             >
               Get a larger pack

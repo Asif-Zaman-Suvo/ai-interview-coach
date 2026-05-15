@@ -44,30 +44,6 @@ export const useChangeRole = () => {
   });
 };
 
-export const useChangeUserPlan = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      id,
-      plan,
-    }: {
-      id: string;
-      plan: 'free' | 'pack_10' | 'pack_30';
-    }) => api.put(`/admin/users/${id}/plan`, { plan }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      void queryClient.invalidateQueries({ queryKey: ['session-quota'] });
-      void queryClient.invalidateQueries({ queryKey: ['app-settings'] });
-    },
-    onError: (error: unknown) => {
-      const msg =
-        error instanceof Error ? error.message : 'Failed to update plan';
-      toast.error(msg);
-    },
-  });
-};
-
 export const useDeleteUser = () => {
   const queryClient = useQueryClient();
 

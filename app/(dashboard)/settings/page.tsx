@@ -172,39 +172,60 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <Card className="border border-border shadow-none">
+      <Card id="plan" className="border border-border shadow-none">
         <CardHeader>
           <CardTitle>Plan</CardTitle>
           <CardDescription>
-            Free: 3 interviews · ৳300 pack: 10 · ৳2,000 pack: 30. Limits are
-            total sessions on your account until you move to a larger pack.
+            {quota?.adminUnlimited
+              ? "Administrator accounts can run unlimited practice interviews."
+              : "Free: 3 interviews · ৳300 pack: 10 · ৳2,000 pack: 30. Limits are total sessions on your account until you move to a larger pack."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
-          <p className="text-foreground">
-            Current plan:{" "}
-            <span className="font-medium">{PLAN_LABEL[data.plan]}</span>
-          </p>
-          {quota ? (
-            <p className="text-muted-foreground">
-              Sessions used: {quota.sessionsUsed} of {quota.sessionLimit}
-            </p>
-          ) : null}
-          {quota && !quota.canStartNewSession ? (
-            <p className="pt-1">
-              <Link
-                href="/#pricing"
-                className={cn(
-                  buttonVariants({ variant: "default", size: "sm" }),
-                  "no-underline",
-                )}
-              >
-                {data.plan === "pack_30"
-                  ? "View packs & billing"
-                  : "Get a larger pack"}
-              </Link>
-            </p>
-          ) : null}
+          {quota?.adminUnlimited ? (
+            <>
+              <p className="text-foreground">
+                <span className="font-medium">Administrator</span>
+                <span className="text-muted-foreground">
+                  {" "}
+                  — no interview limits
+                </span>
+              </p>
+              <p className="text-muted-foreground">
+                Sessions completed:{" "}
+                <span className="tabular-nums font-medium text-foreground">
+                  {quota.sessionsUsed}
+                </span>
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-foreground">
+                Current plan:{" "}
+                <span className="font-medium">{PLAN_LABEL[data.plan]}</span>
+              </p>
+              {quota ? (
+                <p className="text-muted-foreground">
+                  Sessions used: {quota.sessionsUsed} of {quota.sessionLimit}
+                </p>
+              ) : null}
+              {quota && !quota.canStartNewSession ? (
+                <p className="pt-1">
+                  <Link
+                    href="/checkout?pack=pack_10"
+                    className={cn(
+                      buttonVariants({ variant: "default", size: "sm" }),
+                      "no-underline",
+                    )}
+                  >
+                    {data.plan === "pack_30"
+                      ? "View packs & billing"
+                      : "Get a larger pack"}
+                  </Link>
+                </p>
+              ) : null}
+            </>
+          )}
         </CardContent>
       </Card>
 

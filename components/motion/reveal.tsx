@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import {
   motion,
   useReducedMotion,
@@ -7,8 +8,9 @@ import {
 } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-type RevealProps = HTMLMotionProps<"div"> & {
+type RevealProps = Omit<HTMLMotionProps<"div">, "children"> & {
   delay?: number;
+  children?: ReactNode;
 };
 
 export function Reveal({

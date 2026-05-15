@@ -2,12 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { UsersTable } from "@/components/admin/UsersTable";
-import {
-  useAdminUsers,
-  useChangeRole,
-  useChangeUserPlan,
-  useDeleteUser,
-} from "@/lib/hooks/useAdmin";
+import { useAdminUsers, useChangeRole, useDeleteUser } from "@/lib/hooks/useAdmin";
 import { useState } from "react";
 import {
   Dialog,
@@ -21,12 +16,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { api } from "@/lib/api";
-import type { UserPlan } from "@/lib/types";
 
 export default function AdminUsersPage() {
   const { data: users, isLoading, isError } = useAdminUsers();
   const { mutate: changeRole, isPending: rolePending } = useChangeRole();
-  const { mutate: changePlan, isPending: planPending } = useChangeUserPlan();
   const { mutate: deleteUser } = useDeleteUser();
   const { data: authSession } = authClient.useSession();
   const { data: authMe } = useQuery({
@@ -53,10 +46,6 @@ export default function AdminUsersPage() {
     changeRole({ id: userId, role: newRole });
   };
 
-  const handlePlanChange = (userId: string, plan: UserPlan) => {
-    changePlan({ id: userId, plan });
-  };
-
   const handleDeleteClick = (userId: string) => {
     setSelectedUserId(userId);
     setDeleteDialogOpen(true);
@@ -80,8 +69,9 @@ export default function AdminUsersPage() {
           User Management
         </h1>
         <p className="text-sm text-muted-foreground">
-          Manage user accounts and permissions. Set role to Administrator to grant
-          admin access.
+          Manage roles and remove accounts. Learner billing plans are shown for
+          visibility only — admins don&apos;t have a plan; plans can&apos;t be
+          edited here (users upgrade via checkout).
         </p>
       </div>
 
@@ -92,9 +82,7 @@ export default function AdminUsersPage() {
           isError={isError}
           viewerEmail={viewerEmail}
           roleUpdatePending={rolePending}
-          planUpdatePending={planPending}
           onRoleChange={handleRoleChange}
-          onPlanChange={handlePlanChange}
           onDelete={handleDeleteClick}
         />
       </Card>

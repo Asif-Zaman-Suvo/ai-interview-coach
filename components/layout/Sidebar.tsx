@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
+import { PlanQuotaBadge } from "@/components/plan/plan-quota-badge";
 import { userDisplayName } from "@/lib/user-display-name";
 
 const navItems = [
@@ -93,7 +94,8 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-2 py-3 border-t border-border space-y-2 shrink-0">
+      <div className="space-y-2 border-t border-border px-2 py-3 shrink-0">
+        <PlanQuotaBadge variant="block" className="mx-1" />
         <ThemeToggle />
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-muted">
           <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center text-accent-foreground text-[10px] font-semibold">
