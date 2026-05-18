@@ -53,4 +53,4 @@ Backend for auth and data is a **NestJS** API (not in this repo); this app talks
 
 6. Open **http://localhost:3000**.
 
-**Tests:** `npm test` (Vitest — URL helper unit tests).
+**Tests:** `npm test` (Vitest — URL helper unit tests). **Types:** `npm run typecheck`.

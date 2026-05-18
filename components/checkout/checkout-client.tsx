@@ -21,6 +21,7 @@ import { authClient } from "@/lib/auth-client";
 import { useDummyPurchase } from "@/lib/hooks/useBilling";
 import { useSessionQuota } from "@/lib/hooks/useDashboard";
 import { cn } from "@/lib/utils";
+import { useIsClient } from "@/lib/use-is-client";
 import type { PaidPackId, PricingTierDef } from "@/lib/pricing-packs";
 import {
   PLAN_LABEL,
@@ -245,25 +246,21 @@ export function CheckoutClient({
   const router = useRouter();
   const reduceMotion = useReducedMotion();
   const [method, setMethod] = useState<PaymentMethod>("bkash");
-  const [mounted, setMounted] = useState(false);
+  const isClient = useIsClient();
   const { data: session, isPending: sessionPending } = authClient.useSession();
   const { mutate: dummyPurchase, isPending: dummyPending } = useDummyPurchase();
   const authed = Boolean(session?.user);
-  const quotaEnabled = mounted && authed;
+  const quotaEnabled = isClient && authed;
   const { data: quota, isPending: quotaPending } = useSessionQuota(quotaEnabled);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   /** Marketing / bookmarks often open `/checkout?pack=pack_10`; bump capped pack_10 users to pack_30. */
   useEffect(() => {
-    if (!mounted || !authed || quotaPending || !quota || quota.adminUnlimited) return;
+    if (!isClient || !authed || quotaPending || !quota || quota.adminUnlimited) return;
     if (packId !== "pack_10") return;
     if (quota.plan !== "pack_10") return;
     if (quota.canStartNewSession) return;
     router.replace("/checkout?pack=pack_30");
-  }, [mounted, authed, quotaPending, quota, packId, router]);
+  }, [isClient, authed, quotaPending, quota, packId, router]);
 
   const transition = reduceMotion
     ? { duration: 0 }
@@ -300,7 +297,7 @@ export function CheckoutClient({
           ({tier.price} · {tier.priceNote}).
         </p>
 
-        {mounted && authed ? (
+        {isClient && authed ? (
           <motion.div
             initial={reduceMotion ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}

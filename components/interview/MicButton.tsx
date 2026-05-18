@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Mic, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
+const WAVE_BAR_HEIGHTS_PX = [18, 24, 20, 26, 22] as const;
 
 interface MicButtonProps {
   isRecording: boolean;
@@ -14,16 +16,18 @@ export function MicButton({
   onToggle,
   disabled = false,
 }: MicButtonProps) {
-  const [showWaveform, setShowWaveform] = useState(false);
+  const [linger, setLinger] = useState(false);
 
   useEffect(() => {
     if (isRecording) {
-      setShowWaveform(true);
-    } else {
-      const timer = setTimeout(() => setShowWaveform(false), 300);
-      return () => clearTimeout(timer);
+      queueMicrotask(() => setLinger(true));
+      return;
     }
+    const timer = setTimeout(() => setLinger(false), 300);
+    return () => clearTimeout(timer);
   }, [isRecording]);
+
+  const showWaveform = isRecording || linger;
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -48,7 +52,7 @@ export function MicButton({
 
       {showWaveform && (
         <div className="flex items-center gap-1 h-8" aria-hidden="true">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {Array.from({ length: WAVE_BAR_HEIGHTS_PX.length }).map((_, i) => (
             <div
               key={i}
               className={cn(
@@ -56,7 +60,7 @@ export function MicButton({
                 isRecording ? "bg-emerald-500 animate-pulse" : "bg-primary",
               )}
               style={{
-                height: isRecording ? `${16 + Math.random() * 16}px` : "4px",
+                height: isRecording ? `${WAVE_BAR_HEIGHTS_PX[i]}px` : "4px",
                 animationDelay: `${i * 100}ms`,
               }}
             />

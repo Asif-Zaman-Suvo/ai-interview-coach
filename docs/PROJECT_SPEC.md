@@ -71,6 +71,9 @@ npm run start
 # Lint
 npm run lint
 
+# Typecheck (no emit)
+npm run typecheck
+
 # Tests (Vitest — URL helpers)
 npm test
 
@@ -95,7 +98,7 @@ graphify-out/           # Optional code graph artifacts (generated)
 .cursor/                # Cursor rules & skills (not app runtime)
 ```
 
-**Tests:** Not present yet; add under `__tests__/` or `*.test.ts(x)` with chosen runner (see Testing Strategy).
+**Tests:** `lib/**/*.test.ts` (Vitest); expand as features grow (see Testing Strategy).
 
 ---
 
@@ -139,7 +142,7 @@ export default function LiveInterviewPage() {
 
 **Coverage expectation:** Not enforced until a runner exists; first milestone is “CI runs lint + build + unit tests for new critical logic.”
 
-Developer onboarding: `README.md` + this spec. Run **`npm test`** after changes to `lib/backend-origin.ts` or `lib/api-url.ts`.
+Developer onboarding: `README.md` + this spec. Run **`npm test`** after changes to `lib/backend-origin.ts` or `lib/api-url.ts`; run **`npm run typecheck`** before merge when touching TS.
 
 ---
 
@@ -171,7 +174,7 @@ Developer onboarding: `README.md` + this spec. Run **`npm test`** after changes 
 
 - [x] This document is **reviewed and approved** by the maintainer.
 - [x] README or onboarding points to **`docs/PROJECT_SPEC.md`** as the living product/dev contract for the frontend.
-- [ ] `npm run lint` and `npm run build` succeed on `main` (or default branch) — *lint currently fails on pre-existing issues in the tree; treat clearing them as engineering debt or a dedicated task.*
+- [x] `npm run lint` and `npm run build` succeed on `main` (or default branch) — *verify on each release / CI when added*.
 - [x] `.env.example` documents required env vars for local dev.
 - [x] Open Questions below are **resolved or explicitly deferred** with owners — *see [Open Questions (resolutions / deferrals)](#open-questions-resolutions--deferrals)*.
 
@@ -234,12 +237,12 @@ Developer onboarding: `README.md` + this spec. Run **`npm test`** after changes 
 
 Check off as completed. Each task is scoped for roughly one focused session.
 
-- [ ] **Task:** Resolve `react-hooks/set-state-in-effect`, `no-html-link-for-pages`, and related ESLint errors until `npm run lint` passes  
+- [x] **Task:** Resolve `react-hooks/set-state-in-effect`, `no-html-link-for-pages`, and related ESLint errors until `npm run lint` passes  
   - **Acceptance:** `npm run lint` exits 0.  
   - **Verify:** `npm run lint`  
   - **Files:** Various (see ESLint output)
 
-- [ ] **Task:** Add `npm run typecheck` → `tsc --noEmit` in `package.json`  
+- [x] **Task:** Add `npm run typecheck` → `tsc --noEmit` in `package.json`  
   - **Acceptance:** Script runs clean locally.  
   - **Verify:** `npm run typecheck`  
   - **Files:** `package.json`

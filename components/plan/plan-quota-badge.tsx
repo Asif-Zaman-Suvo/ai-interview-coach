@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 import { useSessionQuota } from "@/lib/hooks/useDashboard";
 import { PLAN_LABEL, PLAN_TITLE } from "@/lib/types";
+import { useIsClient } from "@/lib/use-is-client";
 
 type Variant = "compact" | "block";
 
@@ -16,14 +16,10 @@ export function PlanQuotaBadge({
   variant?: Variant;
   className?: string;
 }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const isClient = useIsClient();
 
   const { data: session } = authClient.useSession();
-  const enabled = mounted && !!session?.user;
+  const enabled = isClient && !!session?.user;
   const { data: quota, isPending } = useSessionQuota(enabled);
 
   if (!enabled) return null;

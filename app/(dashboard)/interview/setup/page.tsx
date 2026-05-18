@@ -10,7 +10,7 @@ import { DifficultySelection } from "@/components/interview/DifficultySelection"
 import { ResumeUpload } from "@/components/interview/ResumeUpload";
 import { InterviewSummary } from "@/components/interview/InterviewSummary";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import { JobRole, Difficulty, Role } from "@/lib/types";
+import { Difficulty, Role } from "@/lib/types";
 import { useRoles, useStartSession } from "@/lib/hooks/useInterview";
 import { useSessionQuota } from "@/lib/hooks/useDashboard";
 import { PLAN_LABEL } from "@/lib/types";
@@ -83,7 +83,7 @@ export default function InterviewSetupPage() {
         const text = e.target?.result as string;
         resolve(text);
       };
-      reader.onerror = (e) => {
+      reader.onerror = () => {
         reject(new Error('Failed to read resume file'));
       };
       reader.readAsText(file);
@@ -161,7 +161,6 @@ export default function InterviewSetupPage() {
 
       <StepIndicator
         currentStep={currentStep}
-        totalSteps={steps.length}
         steps={steps}
       />
 

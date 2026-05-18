@@ -1,12 +1,10 @@
 interface StepIndicatorProps {
   currentStep: number;
-  totalSteps: number;
   steps: string[];
 }
 
 export function StepIndicator({
   currentStep,
-  totalSteps,
   steps,
 }: StepIndicatorProps) {
   return (

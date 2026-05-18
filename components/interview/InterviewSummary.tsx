@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { Role, Difficulty } from "@/lib/types";
 
 interface InterviewSummaryProps {
@@ -51,7 +51,7 @@ export function InterviewSummary({
 
       <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
         <p className="text-sm text-foreground">
-          <strong>What to expect:</strong> You'll answer 5 questions tailored
+          <strong>What to expect:</strong> You&apos;ll answer 5 questions tailored
           to your role and difficulty level. Take your time, and speak clearly
           into your microphone.
         </p>

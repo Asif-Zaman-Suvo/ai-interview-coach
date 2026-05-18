@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
@@ -12,15 +11,13 @@ import {
 } from "@/lib/pricing-packs";
 import { authClient } from "@/lib/auth-client";
 import { useSessionQuota } from "@/lib/hooks/useDashboard";
+import { useIsClient } from "@/lib/use-is-client";
 
 export function PricingSection() {
-  const [mounted, setMounted] = useState(false);
+  const isClient = useIsClient();
   const { data: session } = authClient.useSession();
-  const authed = mounted && Boolean(session?.user);
+  const authed = isClient && Boolean(session?.user);
   const { data: quota, isPending: quotaPending } = useSessionQuota(authed);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const hrefCtx = {
     authed,

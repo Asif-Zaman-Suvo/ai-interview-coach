@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -56,7 +56,8 @@ export default function SettingsPage() {
   }, [isAdmin, router]);
 
   useEffect(() => {
-    if (data?.name != null) setDisplayName(data.name);
+    if (data?.name == null) return;
+    startTransition(() => setDisplayName(data.name));
   }, [data?.name]);
 
   async function handleSignOut() {

@@ -11,7 +11,7 @@ import {
 import { Check, Trash2, X } from "lucide-react";
 import type { AdminUser } from "@/lib/types";
 import { PLAN_LABEL } from "@/lib/types";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 
 function normalizeEmail(email: string | null | undefined): string {
@@ -54,14 +54,7 @@ function RoleSelectWithConfirm({
   const committed = committedRole(user);
   const [pending, setPending] = useState<"user" | "admin" | null>(null);
   const displayed = pending ?? committed;
-
-  useEffect(() => {
-    if (pending !== null && pending === committed) {
-      setPending(null);
-    }
-  }, [committed, pending]);
-
-  const dirty = pending !== null;
+  const dirty = pending !== null && pending !== committed;
   const disabled = !!roleUpdatePending;
 
   return (

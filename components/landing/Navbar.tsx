@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Mic, Menu } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { SmoothScrollHashLink } from "@/components/motion/smooth-scroll-hash-lin
 import { PlanQuotaBadge } from "@/components/plan/plan-quota-badge";
 import { authClient } from "@/lib/auth-client";
 import { useProfileDisplay } from "@/lib/hooks/useProfileDisplay";
+import { useIsClient } from "@/lib/use-is-client";
 
 const navLinks = [
   { href: "#features", label: "Features" },
@@ -25,17 +26,13 @@ const navLinks = [
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const isClient = useIsClient();
   const { data: session } = authClient.useSession();
   const authedUser = session?.user;
   const { displayName: navDisplayName } = useProfileDisplay();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   /** Avoid hydration mismatch: SSR has no session cookie context for this tree. */
-  const isAuthed = mounted && !!authedUser;
+  const isAuthed = isClient && !!authedUser;
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm">

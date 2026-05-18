@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import StatsCard from "@/components/dashboard/StatsCard";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -60,21 +61,21 @@ export default function AdminDashboardPage() {
         <Card className="p-6">
           <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
           <div className="space-y-2">
-            <a
+            <Link
               href="/admin/roles"
               className="block px-4 py-2 rounded-lg hover:bg-muted transition-colors"
             >
               <div className="text-sm font-medium text-foreground">Job roles</div>
               <div className="text-xs text-muted-foreground">Create roles for question grouping</div>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/admin/users"
               className="block px-4 py-2 rounded-lg hover:bg-muted transition-colors"
             >
               <div className="text-sm font-medium text-foreground">Manage Users</div>
               <div className="text-xs text-muted-foreground">View and manage user accounts</div>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/admin/interviews"
               className="block px-4 py-2 rounded-lg hover:bg-muted transition-colors"
             >
@@ -82,21 +83,21 @@ export default function AdminDashboardPage() {
               <div className="text-xs text-muted-foreground">
                 Browse and delete interviews for any account
               </div>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/admin/questions"
               className="block px-4 py-2 rounded-lg hover:bg-muted transition-colors"
             >
               <div className="text-sm font-medium text-foreground">Question Bank</div>
               <div className="text-xs text-muted-foreground">Manage interview questions</div>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/admin/stats"
               className="block px-4 py-2 rounded-lg hover:bg-muted transition-colors"
             >
               <div className="text-sm font-medium text-foreground">System Stats</div>
               <div className="text-xs text-muted-foreground">View detailed analytics</div>
-            </a>
+            </Link>
           </div>
         </Card>
 

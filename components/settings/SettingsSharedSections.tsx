@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -41,6 +40,7 @@ import type { AppUserSettings, Difficulty, JobRole } from "@/lib/types";
 import { ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TestimonialFeedbackCard } from "@/components/settings/TestimonialFeedbackCard";
+import { useIsClient } from "@/lib/use-is-client";
 
 const ROLES: JobRole[] = [
   "Frontend Developer",
@@ -110,11 +110,7 @@ export function SettingsSharedSections({
   handleDeleteAccount: () => void;
 }) {
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const isClient = useIsClient();
 
   const themeValue = (theme ?? "system") as "light" | "dark" | "system";
 
@@ -203,7 +199,7 @@ export function SettingsSharedSections({
         <CardContent>
           <div className="space-y-2">
             <Label id="theme-label">Color theme</Label>
-            {!mounted ? (
+            {!isClient ? (
               <div
                 className="h-8 max-w-xs rounded-lg bg-muted"
                 aria-hidden

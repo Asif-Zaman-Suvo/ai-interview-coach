@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -35,10 +35,12 @@ export function TestimonialFeedbackCard() {
 
   useEffect(() => {
     if (!existing) return;
-    setRating(String(existing.rating));
-    setQuote(existing.quote);
-    setAuthorName(existing.name);
-    setAuthorRole(existing.role);
+    startTransition(() => {
+      setRating(String(existing.rating));
+      setQuote(existing.quote);
+      setAuthorName(existing.name);
+      setAuthorRole(existing.role);
+    });
   }, [existing]);
 
   const handleSubmit = async (e: React.FormEvent) => {
