@@ -1,5 +1,7 @@
 # AI Interview Coach
 
+Living **product / dev contract:** [docs/PROJECT_SPEC.md](docs/PROJECT_SPEC.md)
+
 ## Features we’re building
 
 - **Marketing** — Landing, checkout, privacy, and terms.
@@ -50,3 +52,5 @@ Backend for auth and data is a **NestJS** API (not in this repo); this app talks
    ```
 
 6. Open **http://localhost:3000**.
+
+**Tests:** `npm test` (Vitest — URL helper unit tests).
