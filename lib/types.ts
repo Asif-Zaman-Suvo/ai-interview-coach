@@ -96,6 +96,26 @@ export interface SessionSummary {
   difficulty?: Difficulty;
 }
 
+/** Admin `GET /admin/interviews` row (every user’s interviews). */
+export interface AdminInterviewSessionRow extends SessionSummary {
+  participantUserId: string;
+  participantEmail: string | null;
+  participantName: string | null;
+}
+
+export interface PaginatedAdminInterviews {
+  sessions: AdminInterviewSessionRow[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export type AdminSessionDetail = Session & {
+  participantEmail?: string | null;
+  participantName?: string | null;
+};
+
 export interface DashboardStats {
   totalSessions: number;
   averageScore: number;

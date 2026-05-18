@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
-import { AdminStats, AdminUser, QuestionBankItem } from '@/lib/types';
+import { AdminStats, AdminUser, PaginatedAdminInterviews, QuestionBankItem, AdminSessionDetail } from '@/lib/types';
 
 export const useAdminUsers = () =>
   useQuery({
@@ -19,6 +19,22 @@ export const useAdminQuestions = () =>
   useQuery({
     queryKey: ['admin-questions'],
     queryFn: () => api.get<QuestionBankItem[]>('/admin/questions/bank'),
+  });
+
+export const useAdminInterviewSessions = (page: number, limit = 15) =>
+  useQuery({
+    queryKey: ['admin-interviews', page, limit],
+    queryFn: () =>
+      api.get<PaginatedAdminInterviews>(
+        `/admin/interviews?page=${page}&limit=${limit}`,
+      ),
+  });
+
+export const useAdminInterviewSession = (id: string) =>
+  useQuery({
+    queryKey: ['admin-interview-detail', id],
+    queryFn: () => api.get<AdminSessionDetail>(`/admin/interviews/${id}`),
+    enabled: !!id,
   });
 
 export const useChangeRole = () => {

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { useSessions } from "@/lib/hooks/useHistory";
+import { useIsAdmin } from "@/lib/hooks/useAuthRole";
 import { formatElapsedSeconds } from "@/lib/format-duration";
 import { formatLocaleDateParts } from "@/lib/parse-api-date";
 import Link from "next/link";
@@ -30,6 +31,7 @@ export default function HistoryPage() {
   );
   const { data: sessionsData, isLoading, isError } = useSessions(page);
   const deleteMutation = useDeleteInterviewSession();
+  const isAdmin = useIsAdmin();
 
   if (isLoading) return <LoadingSpinner />;
   if (isError) return <ErrorMessage message="Failed to load interview history" />;
@@ -128,17 +130,19 @@ export default function HistoryPage() {
                       View
                     </Button>
                   </Link>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => setPendingDelete(session)}
-                    disabled={
-                      deleteMutation.isPending &&
-                      pendingDelete?.id === session.id
-                    }
-                  >
-                    Delete
-                  </Button>
+                  {isAdmin ? (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setPendingDelete(session)}
+                      disabled={
+                        deleteMutation.isPending &&
+                        pendingDelete?.id === session.id
+                      }
+                    >
+                      Delete
+                    </Button>
+                  ) : null}
                 </div>
               </div>
             );
@@ -176,34 +180,39 @@ export default function HistoryPage() {
         )}
       </Card>
 
-      <Dialog
-        open={!!pendingDelete}
-        onOpenChange={(open: boolean) => !open && setPendingDelete(null)}
-      >
-        <DialogContent showCloseButton>
-          <DialogHeader>
-            <DialogTitle>Delete interview?</DialogTitle>
-            <DialogDescription>
-              This removes the session &ldquo;
-              {pendingDelete?.role ?? "session"}&rdquo; and all answers from
-              your history. You cannot undo this.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter showCloseButton={false} className="border-0 bg-transparent p-0 sm:justify-end">
-            <DialogClose render={<Button variant="outline" size="sm" />}>
-              Cancel
-            </DialogClose>
-            <Button
-              variant="destructive"
-              size="sm"
-              disabled={deleteMutation.isPending}
-              onClick={confirmDelete}
+      {isAdmin && pendingDelete ? (
+        <Dialog
+          open={!!pendingDelete}
+          onOpenChange={(open: boolean) => !open && setPendingDelete(null)}
+        >
+          <DialogContent showCloseButton>
+            <DialogHeader>
+              <DialogTitle>Delete interview?</DialogTitle>
+              <DialogDescription>
+                This removes the session &ldquo;
+                {pendingDelete.role ?? "session"}&rdquo; and all answers from
+                your history. You cannot undo this.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter
+              showCloseButton={false}
+              className="-mx-0 -mb-0 mt-4 flex flex-col-reverse gap-4 border-0 bg-transparent p-0 sm:flex-row sm:justify-end"
             >
-              {deleteMutation.isPending ? "Deleting…" : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              <DialogClose render={<Button variant="outline" size="sm" />}>
+                Cancel
+              </DialogClose>
+              <Button
+                variant="destructive"
+                size="sm"
+                disabled={deleteMutation.isPending}
+                onClick={confirmDelete}
+              >
+                {deleteMutation.isPending ? "Deleting…" : "Delete"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </div>
   );
 }

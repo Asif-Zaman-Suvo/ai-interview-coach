@@ -12,6 +12,7 @@ import {
   Briefcase,
   LogOut,
   Settings,
+  History,
 } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ const adminNavItems = [
   { href: "/admin/settings", label: "Settings", icon: Settings },
   { href: "/admin/roles", label: "Job roles", icon: Briefcase },
   { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/interviews", label: "Interview history", icon: History },
   { href: "/admin/questions", label: "Question bank", icon: Database },
   { href: "/admin/stats", label: "System stats", icon: Shield },
 ];

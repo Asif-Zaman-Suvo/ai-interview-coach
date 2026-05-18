@@ -8,6 +8,7 @@ import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useStats, useRecentSessions, useScoreTrend, useSessionQuota } from "@/lib/hooks/useDashboard";
 import { PLAN_LABEL } from "@/lib/types";
+import { quotaUpgradeHref } from "@/lib/pricing-packs";
 import Link from "next/link";
 
 export default function DashboardPage() {
@@ -115,10 +116,10 @@ export default function DashboardPage() {
           <p className="mt-1 text-muted-foreground">
             You&apos;ve used all {quota.sessionLimit} interviews in your current pack.{" "}
             <Link
-              href="/checkout?pack=pack_10"
+              href={quotaUpgradeHref(quota.plan)}
               className="font-medium text-primary underline-offset-4 hover:underline"
             >
-              Get a larger pack
+              {quota.plan === "pack_30" ? "View packs" : "Get a larger pack"}
             </Link>{" "}
             to continue.
           </p>

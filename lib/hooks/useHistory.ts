@@ -81,6 +81,10 @@ export const useDeleteInterviewSession = () => {
       queryClient.invalidateQueries({ queryKey: ['session', sessionId] });
       queryClient.invalidateQueries({ queryKey: ['stats'] });
       queryClient.invalidateQueries({ queryKey: ['score-trend'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-interviews'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-interview-detail', sessionId] });
     },
   });
 };

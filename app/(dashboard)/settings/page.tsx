@@ -23,6 +23,7 @@ import { useSessionQuota } from "@/lib/hooks/useDashboard";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { PLAN_LABEL } from "@/lib/types";
+import { quotaUpgradeHref } from "@/lib/pricing-packs";
 import { cn } from "@/lib/utils";
 import { SettingsSharedSections } from "@/components/settings/SettingsSharedSections";
 import { fetchAuthMe } from "@/lib/auth-me";
@@ -146,7 +147,7 @@ export default function SettingsPage() {
           {quota && !quota.canStartNewSession ? (
             <p className="pt-1">
               <Link
-                href="/checkout?pack=pack_10"
+                href={quotaUpgradeHref(quota?.plan ?? data.plan)}
                 className={cn(
                   buttonVariants({ variant: "default", size: "sm" }),
                   "no-underline",

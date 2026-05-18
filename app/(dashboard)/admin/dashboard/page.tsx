@@ -75,6 +75,15 @@ export default function AdminDashboardPage() {
               <div className="text-xs text-muted-foreground">View and manage user accounts</div>
             </a>
             <a
+              href="/admin/interviews"
+              className="block px-4 py-2 rounded-lg hover:bg-muted transition-colors"
+            >
+              <div className="text-sm font-medium text-foreground">Interview history</div>
+              <div className="text-xs text-muted-foreground">
+                Browse and delete interviews for any account
+              </div>
+            </a>
+            <a
               href="/admin/questions"
               className="block px-4 py-2 rounded-lg hover:bg-muted transition-colors"
             >

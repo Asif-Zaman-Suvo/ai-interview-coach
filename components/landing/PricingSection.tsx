@@ -1,11 +1,33 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Reveal } from "@/components/motion/reveal";
 import { cn } from "@/lib/utils";
-import { PRICING_TIERS, tierHref } from "@/lib/pricing-packs";
+import {
+  PRICING_TIERS,
+  tierHrefForViewer,
+} from "@/lib/pricing-packs";
+import { authClient } from "@/lib/auth-client";
+import { useSessionQuota } from "@/lib/hooks/useDashboard";
 
 export function PricingSection() {
+  const [mounted, setMounted] = useState(false);
+  const { data: session } = authClient.useSession();
+  const authed = mounted && Boolean(session?.user);
+  const { data: quota, isPending: quotaPending } = useSessionQuota(authed);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const hrefCtx = {
+    authed,
+    quota,
+    quotaSettled: !authed || !quotaPending,
+  };
+
   return (
     <section
       id="pricing"
@@ -68,7 +90,7 @@ export function PricingSection() {
                     ))}
                   </ul>
                   <Link
-                    href={tierHref(tier.id)}
+                    href={tierHrefForViewer(tier.id, hrefCtx)}
                     className={cn(
                       buttonVariants({
                         variant: tier.ctaVariant,

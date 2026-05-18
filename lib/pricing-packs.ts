@@ -1,3 +1,5 @@
+import type { SessionQuota, UserPlan } from "@/lib/types";
+
 export type PricingPackId = "free" | "pack_10" | "pack_30";
 
 export type PricingTierDef = {
@@ -70,6 +72,44 @@ export const PRICING_TIERS: readonly PricingTierDef[] = [
 export function tierHref(id: PricingPackId): string {
   if (id === "free") return "/register";
   return `/checkout?pack=${id}`;
+}
+
+/** Where to send someone who hit their interview cap (next paid tier or pricing when already on largest pack). */
+export function quotaUpgradeHref(currentPlan: UserPlan): string {
+  if (currentPlan === "pack_30") return "/pricing";
+  if (currentPlan === "pack_10") return "/checkout?pack=pack_30";
+  return "/checkout?pack=pack_10";
+}
+
+/** Pricing-page CTA: avoid sending users to checkout for the same paid pack they're already capped on. */
+export function tierHrefForViewer(
+  tierId: PricingPackId,
+  ctx: {
+    authed: boolean;
+    quota: SessionQuota | undefined;
+    quotaSettled: boolean;
+  },
+): string {
+  if (tierId === "free") return tierHref("free");
+  const { authed, quota, quotaSettled } = ctx;
+  if (!authed || !quotaSettled || !quota || quota.adminUnlimited) {
+    return tierHref(tierId);
+  }
+  if (
+    tierId === "pack_10" &&
+    quota.plan === "pack_10" &&
+    !quota.canStartNewSession
+  ) {
+    return "/checkout?pack=pack_30";
+  }
+  if (
+    tierId === "pack_30" &&
+    quota.plan === "pack_30" &&
+    !quota.canStartNewSession
+  ) {
+    return quotaUpgradeHref("pack_30");
+  }
+  return tierHref(tierId);
 }
 
 export function getTierByPackId(id: string): PricingTierDef | undefined {

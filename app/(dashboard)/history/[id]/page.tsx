@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useDeleteInterviewSession, useSessionById } from "@/lib/hooks/useHistory";
+import { useIsAdmin } from "@/lib/hooks/useAuthRole";
 import { toast } from "sonner";
 
 export default function HistoryDetailPage() {
@@ -28,6 +29,7 @@ export default function HistoryDetailPage() {
   const sessionId = params.id as string;
   const [deleteOpen, setDeleteOpen] = useState(false);
   const deleteMutation = useDeleteInterviewSession();
+  const isAdmin = useIsAdmin();
   const { data: session, isLoading, isError } = useSessionById(sessionId);
 
   if (isLoading) return <LoadingSpinner />;
@@ -183,16 +185,19 @@ export default function HistoryDetailPage() {
         <Link href={`/interview/result/${session.id}`}>
           <Button variant="outline">View Results</Button>
         </Link>
-        <Button
-          variant="destructive"
-          onClick={() => setDeleteOpen(true)}
-          disabled={deleteMutation.isPending}
-        >
-          Delete interview
-        </Button>
+        {isAdmin ? (
+          <Button
+            variant="destructive"
+            onClick={() => setDeleteOpen(true)}
+            disabled={deleteMutation.isPending}
+          >
+            Delete interview
+          </Button>
+        ) : null}
       </div>
 
-      <Dialog open={deleteOpen} onOpenChange={(o: boolean) => !o && setDeleteOpen(false)}>
+      {isAdmin ? (
+        <Dialog open={deleteOpen} onOpenChange={(o: boolean) => !o && setDeleteOpen(false)}>
         <DialogContent showCloseButton>
           <DialogHeader>
             <DialogTitle>Delete this interview?</DialogTitle>
@@ -201,7 +206,10 @@ export default function HistoryDetailPage() {
               be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter showCloseButton={false} className="border-0 bg-transparent p-0 sm:justify-end">
+          <DialogFooter
+            showCloseButton={false}
+            className="-mx-0 -mb-0 mt-4 flex flex-col-reverse gap-4 border-0 bg-transparent p-0 sm:flex-row sm:justify-end"
+          >
             <DialogClose render={<Button variant="outline" size="sm" />}>
               Cancel
             </DialogClose>
@@ -227,6 +235,7 @@ export default function HistoryDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      ) : null}
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -241,6 +242,7 @@ export function CheckoutClient({
   packId: PaidPackId;
   tier: PricingTierDef;
 }) {
+  const router = useRouter();
   const reduceMotion = useReducedMotion();
   const [method, setMethod] = useState<PaymentMethod>("bkash");
   const [mounted, setMounted] = useState(false);
@@ -253,6 +255,15 @@ export function CheckoutClient({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  /** Marketing / bookmarks often open `/checkout?pack=pack_10`; bump capped pack_10 users to pack_30. */
+  useEffect(() => {
+    if (!mounted || !authed || quotaPending || !quota || quota.adminUnlimited) return;
+    if (packId !== "pack_10") return;
+    if (quota.plan !== "pack_10") return;
+    if (quota.canStartNewSession) return;
+    router.replace("/checkout?pack=pack_30");
+  }, [mounted, authed, quotaPending, quota, packId, router]);
 
   const transition = reduceMotion
     ? { duration: 0 }
