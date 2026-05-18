@@ -111,6 +111,25 @@ export interface PaginatedAdminInterviews {
   totalPages: number;
 }
 
+export type AdminNotificationKind = "pack_purchase";
+
+/** Row from `GET /admin/notifications` (pack purchase alerts). */
+export interface AdminPackPurchaseNotification {
+  id: string;
+  kind: AdminNotificationKind;
+  purchaserEmail: string;
+  purchaserName?: string;
+  previousPlan: string;
+  newPlan: string;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface AdminNotificationsResponse {
+  items: AdminPackPurchaseNotification[];
+  unreadCount: number;
+}
+
 export type AdminSessionDetail = Session & {
   participantEmail?: string | null;
   participantName?: string | null;

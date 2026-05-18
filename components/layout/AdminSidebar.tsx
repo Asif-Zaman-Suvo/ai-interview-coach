@@ -17,6 +17,7 @@ import {
 import ThemeToggle from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { useProfileDisplay } from "@/lib/hooks/useProfileDisplay";
+import AdminNotificationsBell from "./AdminNotificationsBell";
 
 const adminNavItems = [
   { href: "/admin/dashboard", label: "Admin Dashboard", icon: BarChart3 },
@@ -47,17 +48,20 @@ export default function AdminSidebar() {
 
   return (
     <div className="flex flex-col h-full">
-      <Link
-        href="/"
-        className="flex shrink-0 items-center gap-2 px-4 h-12 border-b border-border outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-      >
-        <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
-          <Shield className="size-3 text-primary-foreground" aria-hidden />
-        </div>
-        <span className="text-sm font-semibold text-foreground">
-          Admin Panel
-        </span>
-      </Link>
+      <div className="flex shrink-0 items-center gap-1 px-3 h-12 border-b border-border">
+        <Link
+          href="/"
+          className="flex flex-1 min-w-0 items-center gap-2 outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center shrink-0">
+            <Shield className="size-3 text-primary-foreground" aria-hidden />
+          </div>
+          <span className="text-sm font-semibold text-foreground truncate">
+            Admin Panel
+          </span>
+        </Link>
+        <AdminNotificationsBell />
+      </div>
 
       {/* Admin badge */}
       <div className="px-4 py-2 bg-blue-500/10 border-b border-border">

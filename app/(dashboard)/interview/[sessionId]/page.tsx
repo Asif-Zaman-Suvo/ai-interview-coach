@@ -11,7 +11,7 @@ import { FeedbackCard } from "@/components/interview/FeedbackCard";
 import { ProgressPanel } from "@/components/interview/ProgressPanel";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, MicOff } from "lucide-react";
 import {
   useSessionDetail,
   useSubmitAnswer,
@@ -80,14 +80,40 @@ export default function LiveInterviewPage() {
   const [sessionTime, setSessionTime] = useState(0);
   const [feedback, setFeedback] = useState<AnswerFeedback | null>(null);
   const [answeredCount, setAnsweredCount] = useState(0);
+  const [micBlocked, setMicBlocked] = useState(false);
   const browserSupported = useWebSpeechSupported();
 
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  /** Text already in the box when the current recognition.start() ran (survives stop/start). */
+  const transcriptBaseRef = useRef("");
+  /** Finals since the last recognition.start() in this mic session. */
+  const sessionFinalRef = useRef("");
   const isRecordingRef = useRef(false);
 
   useEffect(() => {
     isRecordingRef.current = isRecording;
   }, [isRecording]);
+
+  /** Reflect OS/browser mic permission when the Permissions API exposes it (Chrome). */
+  useEffect(() => {
+    if (typeof window === "undefined" || !browserSupported) return;
+    let permissionStatus: PermissionStatus | undefined;
+    const sync = () => {
+      if (permissionStatus)
+        setMicBlocked(permissionStatus.state === "denied");
+    };
+    void navigator.permissions
+      ?.query({ name: "microphone" as PermissionName })
+      .then((status) => {
+        permissionStatus = status;
+        sync();
+        permissionStatus.addEventListener("change", sync);
+      })
+      .catch(() => {});
+    return () => {
+      permissionStatus?.removeEventListener("change", sync);
+    };
+  }, [browserSupported]);
 
   // Initialize Web Speech API (instance kept on ref — no sync setState in effect)
   useEffect(() => {
@@ -108,23 +134,52 @@ export default function LiveInterviewPage() {
     recognitionInstance.lang = "en-US";
 
     recognitionInstance.onresult = (event: SpeechRecognitionResultEvent) => {
-      let final = "";
+      let interim = "";
+      let deltaFinal = "";
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const chunk = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          final += chunk;
+          deltaFinal += chunk;
+        } else {
+          interim += chunk;
         }
       }
 
-      if (final) {
-        setTranscript((prev) => prev + final);
+      const trimmedDelta = deltaFinal.trim();
+      if (trimmedDelta) {
+        const prev = sessionFinalRef.current;
+        sessionFinalRef.current = prev
+          ? `${prev} ${trimmedDelta}`
+          : trimmedDelta;
       }
+
+      const base = transcriptBaseRef.current.trim();
+      const finals = sessionFinalRef.current.trim();
+      const live = interim.trim();
+      const segments = [base, finals, live].filter(Boolean);
+      setTranscript(segments.join(" "));
     };
 
     recognitionInstance.onerror = (event: SpeechRecognitionErrorLike) => {
-      console.error("Speech recognition error:", event.error);
-      setIsRecording(false);
+      const code = event.error;
+      // Expected when we call stop(); do not flip UI or log as failure.
+      if (code === "aborted") return;
+      // Common in continuous mode after silence; onend will restart if still recording.
+      if (code === "no-speech") return;
+      if (code === "not-allowed" || code === "service-not-allowed") {
+        isRecordingRef.current = false;
+        setIsRecording(false);
+        setMicBlocked(true);
+        return;
+      }
+      if (code === "audio-capture") {
+        isRecordingRef.current = false;
+        setIsRecording(false);
+        setMicBlocked(true);
+        return;
+      }
+      console.warn("Speech recognition:", code);
     };
 
     recognitionInstance.onend = () => {
@@ -164,12 +219,42 @@ export default function LiveInterviewPage() {
     if (!recognition || !browserSupported) return;
 
     if (isRecording) {
-      recognition.stop();
+      isRecordingRef.current = false;
+      try {
+        recognition.stop();
+      } catch {
+        /* already stopped */
+      }
       setIsRecording(false);
-    } else {
-      recognition.start();
-      setIsRecording(true);
+      return;
     }
+
+    void (async () => {
+      if (navigator.mediaDevices?.getUserMedia) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          stream.getTracks().forEach((t) => t.stop());
+          setMicBlocked(false);
+        } catch {
+          setMicBlocked(true);
+          return;
+        }
+      }
+
+      transcriptBaseRef.current = transcript.trim();
+      sessionFinalRef.current = "";
+      isRecordingRef.current = true;
+      try {
+        recognition.start();
+      } catch {
+        isRecordingRef.current = false;
+        setIsRecording(false);
+        return;
+      }
+      setIsRecording(true);
+    })();
   };
 
   // Handle answer submission
@@ -200,6 +285,8 @@ export default function LiveInterviewPage() {
     if (feedback?.nextQuestion) {
       // Move to next question
       setCurrentQuestionIndex((prev) => prev + 1);
+      transcriptBaseRef.current = "";
+      sessionFinalRef.current = "";
       setTranscript("");
       setFeedback(null);
       setIsRecording(false);
@@ -269,6 +356,39 @@ export default function LiveInterviewPage() {
             in Chrome-based browsers. Please switch to Chrome for the best
             experience.
           </p>
+        </div>
+      )}
+
+      {browserSupported && micBlocked && (
+        <div className="mx-4 mt-4 rounded-lg border border-rose-500/35 bg-rose-500/10 p-4 dark:bg-rose-950/40">
+          <div className="flex gap-3">
+            <MicOff
+              className="size-5 shrink-0 text-rose-600 dark:text-rose-400"
+              aria-hidden
+            />
+            <div className="space-y-2 text-sm text-rose-950 dark:text-rose-50">
+              <p className="font-semibold text-rose-900 dark:text-rose-100">
+                Microphone blocked for this site
+              </p>
+              <p className="text-rose-900/90 dark:text-rose-100/90 leading-relaxed">
+                The crossed-out mic in your browser&apos;s address bar means this
+                tab isn&apos;t allowed to use the microphone. Speech-to-text cannot
+                run until you allow access.
+              </p>
+              <ol className="list-decimal list-inside space-y-1 text-rose-900/85 dark:text-rose-100/85">
+                <li>
+                  Click the <strong>lock or tune icon</strong> left of the URL.
+                </li>
+                <li>
+                  Set <strong>Microphone</strong> to <strong>Allow</strong> (not
+                  Block).
+                </li>
+                <li>
+                  <strong>Reload</strong> this page, then tap the mic again.
+                </li>
+              </ol>
+            </div>
+          </div>
         </div>
       )}
 

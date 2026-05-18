@@ -1,7 +1,91 @@
+import { useEffect, useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
-import { AdminStats, AdminUser, PaginatedAdminInterviews, QuestionBankItem, AdminSessionDetail } from '@/lib/types';
+import { apiUrl } from '@/lib/api-url';
+import {
+  AdminNotificationsResponse,
+  AdminPackPurchaseNotification,
+  AdminStats,
+  AdminUser,
+  PaginatedAdminInterviews,
+  QuestionBankItem,
+  AdminSessionDetail,
+} from '@/lib/types';
+
+export function useAdminPurchaseNotificationStream(enabled: boolean) {
+  const queryClient = useQueryClient();
+  const [streamLive, setStreamLive] = useState(false);
+  const cancelledRef = useRef(false);
+
+  useEffect(() => {
+    cancelledRef.current = false;
+    if (!enabled || typeof window === 'undefined') return;
+
+    function applyPurchase(n: AdminPackPurchaseNotification) {
+      queryClient.setQueryData<AdminNotificationsResponse>(
+        ['admin-notifications'],
+        (old) => {
+          if (!old) {
+            return {
+              unreadCount: n.read ? 0 : 1,
+              items: [n],
+            };
+          }
+          if (old.items.some((x) => x.id === n.id)) return old;
+          return {
+            unreadCount: old.unreadCount + (n.read ? 0 : 1),
+            items: [n, ...old.items].slice(0, 40),
+          };
+        },
+      );
+
+      const label =
+        n.purchaserName?.trim()
+          ? `${n.purchaserName.trim()} (${n.purchaserEmail})`
+          : n.purchaserEmail;
+      toast.success('New pack purchase', {
+        description: label,
+      });
+    }
+
+    const es = new EventSource(apiUrl('/admin/notifications/stream'), {
+      withCredentials: true,
+    });
+
+    es.onopen = () => {
+      if (cancelledRef.current) return;
+      setStreamLive(true);
+    };
+
+    es.onmessage = (event: MessageEvent<string>) => {
+      try {
+        const msg = JSON.parse(event.data) as {
+          type?: string;
+          notification?: AdminPackPurchaseNotification;
+        };
+        if (msg.type === 'purchase' && msg.notification) {
+          applyPurchase(msg.notification);
+        }
+      } catch {
+        /* ignore */
+      }
+    };
+
+    es.onerror = () => {
+      if (cancelledRef.current) return;
+      setStreamLive(es.readyState === EventSource.OPEN);
+    };
+
+    return () => {
+      cancelledRef.current = true;
+      setStreamLive(false);
+      es.close();
+    };
+  }, [enabled, queryClient]);
+
+  return { streamLive };
+}
 
 export const useAdminUsers = () =>
   useQuery({
@@ -36,6 +120,27 @@ export const useAdminInterviewSession = (id: string) =>
     queryFn: () => api.get<AdminSessionDetail>(`/admin/interviews/${id}`),
     enabled: !!id,
   });
+
+export const useAdminNotifications = () =>
+  useQuery({
+    queryKey: ['admin-notifications'],
+    queryFn: () =>
+      api.get<AdminNotificationsResponse>('/admin/notifications?limit=40'),
+    refetchInterval: 120_000,
+    refetchOnWindowFocus: true,
+  });
+
+export const useMarkAllAdminNotificationsRead = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () =>
+      api.patch<{ ok: true }>('/admin/notifications/read-all', {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
+    },
+  });
+};
 
 export const useChangeRole = () => {
   const queryClient = useQueryClient();

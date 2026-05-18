@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff } from "lucide-react";
+import { Mic, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 
@@ -35,12 +35,12 @@ export function MicButton({
         className={cn(
           "size-20 rounded-full transition-all duration-300",
           isRecording
-            ? "bg-destructive hover:bg-destructive/90 scale-105"
+            ? "bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 scale-105"
             : "bg-primary hover:bg-primary/90",
         )}
       >
         {isRecording ? (
-          <MicOff className="size-8 text-white" />
+          <Square className="size-7 fill-white text-white" aria-hidden />
         ) : (
           <Mic className="size-8 text-primary-foreground" />
         )}
@@ -52,8 +52,8 @@ export function MicButton({
             <div
               key={i}
               className={cn(
-                "w-1 bg-primary rounded-full transition-all duration-300",
-                isRecording ? "animate-pulse" : "",
+                "w-1 rounded-full transition-all duration-300",
+                isRecording ? "bg-emerald-500 animate-pulse" : "bg-primary",
               )}
               style={{
                 height: isRecording ? `${16 + Math.random() * 16}px` : "4px",
