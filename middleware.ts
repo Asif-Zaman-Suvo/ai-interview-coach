@@ -1,40 +1,54 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+/**
+ * Paths that require a session cookie. Everything else unknown is allowed through
+ * so Next.js can render `app/not-found.tsx` (e.g. /resume, typo URLs).
+ */
+const AUTH_REQUIRED_PREFIXES = [
+  "/dashboard",
+  "/admin",
+  "/settings",
+  "/history",
+  "/interview",
+  "/analytics",
+] as const;
+
+function pathnameRequiresAuth(pathname: string): boolean {
+  return AUTH_REQUIRED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
+/** Unauthenticated users may browse these URLs without redirecting to /login */
+function isPublicPath(pathname: string): boolean {
+  if (pathname === "/") return true;
+  const prefixes = [
+    "/login",
+    "/register",
+    "/terms",
+    "/privacy",
+    "/checkout",
+  ] as const;
+  return prefixes.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Get session from cookie
-  const sessionCookie = request.cookies.get('better-auth.session_token');
+  const sessionCookie = request.cookies.get("better-auth.session_token");
+  const isAuthenticated = Boolean(sessionCookie);
 
-  // For now, we'll do basic path protection
-  // In production, you'd verify the session with your backend
-  const isAuthenticated = !!sessionCookie;
-
-  // Public paths that don't require authentication
-  const publicPaths = ['/login', '/register', '/'];
-  const isPublicPath = publicPaths.some(path => pathname.startsWith(path));
-
-  if (!isAuthenticated && !isPublicPath) {
-    // Redirect to login if not authenticated
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  // Role-based routing (simplified - in production, verify role with backend)
-  // For now, we'll use path-based logic
-  const isAdminPath = pathname.startsWith('/admin');
-  const isDashboardPath = pathname.startsWith('/dashboard');
-
-  // If user tries to access admin paths without admin role, redirect to dashboard
-  if (isAdminPath && isAuthenticated) {
-    // In production, verify the user's role from the session
-    // For now, we'll allow access and let the page handle authorization
-    return NextResponse.next();
-  }
-
-  // If admin tries to access user dashboard, redirect to admin dashboard
-  if (isDashboardPath && isAuthenticated) {
-    // In production, check if user is admin and redirect accordingly
+  if (!isAuthenticated) {
+    if (isPublicPath(pathname)) {
+      return NextResponse.next();
+    }
+    if (pathnameRequiresAuth(pathname)) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+    // Unknown URLs → Next.js resolves to `app/not-found.tsx`
     return NextResponse.next();
   }
 
@@ -42,5 +56,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
