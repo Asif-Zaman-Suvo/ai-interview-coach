@@ -7,7 +7,7 @@ Living **product / dev contract:** [docs/PROJECT_SPEC.md](docs/PROJECT_SPEC.md)
 - **Marketing** — Landing, checkout, privacy, and terms.
 - **Auth** — Login, registration, and admin login; sessions call a separate API with cookies.
 - **Dashboard** — Overview and entry into practice flows.
-- **Mock interviews** — Role/difficulty setup, live session (including voice capture in the browser), per-answer feedback, session feedback view, and results summary.
+- **Mock interviews** — Role/difficulty setup, live session (including voice capture in the browser), per-answer feedback, session feedback view, and results summary. **Voice/transcription** uses the **Web Speech API** — treat as **Chromium-first** (Chrome, recent Edge); other browsers may lack support or behave differently.
 - **History** — List past sessions and open session detail.
 - **Analytics** — Progress and score visualizations.
 - **Admin** — Dashboard, question bank, users, roles, stats, app settings, and interview review listings.

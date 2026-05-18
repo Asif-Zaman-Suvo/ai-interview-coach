@@ -183,9 +183,9 @@ Developer onboarding: `README.md` + this spec. Run **`npm test`** after changes 
 ## Open Questions (resolutions / deferrals)
 
 1. **Default backend URL** — **Resolved for spec:** `http://localhost:3333` per `.env.example` until the team standard changes; update `.env.example` + README if it does.
-2. **Test runner** — **Deferred:** Adopt Vitest when the first feature explicitly requires automated tests; owner: team / next “testing” task.
-3. **Minimum browsers (Web Speech)** — **Deferred:** Document in README or this spec when we add a formal matrix; until then, banner targets Chromium-class as implemented.
-4. **Backend spec** — **Deferred:** Add `docs/PROJECT_SPEC.md` (or equivalent) under `ai-interview-coach-backend` and link from here; owner: backend maintainer.
+2. **Test runner** — **Resolved:** Vitest for small unit tests (`npm test`); expand with feature work.
+3. **Minimum browsers (Web Speech)** — **Resolved for now:** README states Chromium-first expectation; full matrix still optional.
+4. **Backend spec** — **Resolved:** [Nest backend PROJECT_SPEC.md](../../ai-interview-coach-backend/docs/PROJECT_SPEC.md) (relative when both repos live under the same parent, e.g. `ai-interview-coach-full-stack/`). On GitHub, open that file in the `ai-interview-coach-backend` repository.
 
 ---
 
@@ -247,15 +247,15 @@ Check off as completed. Each task is scoped for roughly one focused session.
   - **Verify:** `npm run typecheck`  
   - **Files:** `package.json`
 
-- [ ] **Task:** Document deferred browser matrix in README (one short bullet: Web Speech = Chromium-first)  
+- [x] **Task:** Document deferred browser matrix in README (one short bullet: Web Speech = Chromium-first)  
   - **Acceptance:** README states supported expectation without over-claiming.  
   - **Verify:** Read README  
   - **Files:** `README.md`
 
-- [ ] **Task:** Link backend spec from this doc when `ai-interview-coach-backend/docs/PROJECT_SPEC.md` exists  
+- [x] **Task:** Link backend spec from this doc when `ai-interview-coach-backend/docs/PROJECT_SPEC.md` exists  
   - **Acceptance:** Relative or absolute link from Open Questions #4.  
-  - **Verify:** Link resolves  
-  - **Files:** `docs/PROJECT_SPEC.md` (this file), optionally backend repo
+  - **Verify:** Link resolves when both repos are checked out side-by-side (or via backend repo on GitHub)  
+  - **Files:** `docs/PROJECT_SPEC.md` (this file), `ai-interview-coach-backend/docs/PROJECT_SPEC.md`
 
 - [x] **Task:** (Optional) Vitest + one smoke test for `lib/api-url.ts` or `backendOrigin`  
   - **Acceptance:** `npm test` runs in CI or locally with one passing test.  
