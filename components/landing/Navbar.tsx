@@ -15,7 +15,7 @@ import ThemeToggle from "@/components/layout/ThemeToggle";
 import { SmoothScrollHashLink } from "@/components/motion/smooth-scroll-hash-link";
 import { PlanQuotaBadge } from "@/components/plan/plan-quota-badge";
 import { authClient } from "@/lib/auth-client";
-import { userDisplayName } from "@/lib/user-display-name";
+import { useProfileDisplay } from "@/lib/hooks/useProfileDisplay";
 
 const navLinks = [
   { href: "#features", label: "Features" },
@@ -28,6 +28,7 @@ export function Navbar() {
   const [mounted, setMounted] = useState(false);
   const { data: session } = authClient.useSession();
   const authedUser = session?.user;
+  const { displayName: navDisplayName } = useProfileDisplay();
 
   useEffect(() => {
     setMounted(true);
@@ -74,7 +75,7 @@ export function Navbar() {
                 className="max-w-[12rem] truncate text-sm font-medium text-foreground"
                 title={authedUser.email ?? undefined}
               >
-                {userDisplayName(authedUser)}
+                {navDisplayName}
               </span>
               <Link
                 href="/dashboard"
@@ -142,7 +143,7 @@ export function Navbar() {
                       <PlanQuotaBadge variant="block" />
                     </div>
                     <p className="px-3 py-2 text-sm font-medium text-foreground">
-                      {userDisplayName(authedUser)}
+                      {navDisplayName}
                     </p>
                     <Link
                       href="/dashboard"

@@ -15,3 +15,15 @@ export const authClient = createAuthClient({
     credentials: 'include',
   },
 });
+
+/** Re-fetch Better Auth session after server-side user updates (e.g. display name). */
+export async function refreshAuthSession(): Promise<void> {
+  type ClientWithSession = typeof authClient & {
+    getSession?: (opts?: {
+      query?: { disableCookieCache?: boolean };
+    }) => Promise<unknown>;
+  };
+  await (authClient as ClientWithSession).getSession?.({
+    query: { disableCookieCache: true },
+  });
+}

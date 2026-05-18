@@ -18,7 +18,7 @@ import {
 import ThemeToggle from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { PlanQuotaBadge } from "@/components/plan/plan-quota-badge";
-import { userDisplayName } from "@/lib/user-display-name";
+import { useProfileDisplay } from "@/lib/hooks/useProfileDisplay";
 import { useSessionQuota } from "@/lib/hooks/useDashboard";
 
 const navBase = [
@@ -30,27 +30,11 @@ const navBase = [
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-function initialsFromUser(name?: string | null, email?: string | null): string {
-  const n = (name ?? "").trim();
-  if (n) {
-    const parts = n.split(/\s+/).filter(Boolean);
-    if (parts.length >= 2)
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    return n.slice(0, 2).toUpperCase();
-  }
-  const e = (email ?? "").trim();
-  if (e) return e.slice(0, 2).toUpperCase();
-  return "?";
-}
-
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { data: session } = authClient.useSession();
-  const user = session?.user;
-  const displayName = userDisplayName(user);
-  const initials = initialsFromUser(user?.name ?? null, user?.email ?? null);
-  const { data: quota } = useSessionQuota(!!user);
+  const { displayName, initials, email, signedIn } = useProfileDisplay();
+  const { data: quota } = useSessionQuota(signedIn);
   const settingsHref = quota?.adminUnlimited ? "/admin/settings" : "/settings";
 
   const navItems = useMemo(
@@ -120,7 +104,7 @@ export default function Sidebar() {
               {displayName}
             </p>
             <p className="text-xs text-muted-foreground truncate">
-              {user?.email ?? "Signed in"}
+              {email ?? "Signed in"}
             </p>
           </div>
         </div>

@@ -1,12 +1,10 @@
 "use client";
 
-import { authClient } from "@/lib/auth-client";
 import ThemeToggle from "./ThemeToggle";
+import { useProfileDisplay } from "@/lib/hooks/useProfileDisplay";
 
 export default function Header() {
-  const { data: session } = authClient.useSession();
-  const user = session?.user;
-  const displayName = user?.name ?? user?.email ?? "User";
+  const { displayName } = useProfileDisplay();
 
   return (
     <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-background">

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
+import { refreshAuthSession } from '@/lib/auth-client';
 import type { AppUserSettings } from '@/lib/types';
 
 export function useAppSettings() {
@@ -17,10 +18,11 @@ export function useUpdateSettings() {
   return useMutation({
     mutationFn: (body: Partial<AppUserSettings>) =>
       api.patch<AppUserSettings>('/settings', body),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success('Saved');
-      void qc.invalidateQueries({ queryKey: ['app-settings'] });
-      void qc.invalidateQueries({ queryKey: ['auth-user'] });
+      await qc.invalidateQueries({ queryKey: ['app-settings'] });
+      await qc.invalidateQueries({ queryKey: ['auth-user'] });
+      await refreshAuthSession();
       router.refresh();
     },
     onError: (e: Error) => toast.error(e.message),

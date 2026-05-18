@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { userDisplayName } from "@/lib/user-display-name";
+import { useProfileDisplay } from "@/lib/hooks/useProfileDisplay";
 
 const adminNavItems = [
   { href: "/admin/dashboard", label: "Admin Dashboard", icon: BarChart3 },
@@ -28,26 +28,16 @@ const adminNavItems = [
   { href: "/admin/stats", label: "System stats", icon: Shield },
 ];
 
-function initialsFromUser(name?: string | null, email?: string | null): string {
-  const n = (name ?? "").trim();
-  if (n) {
-    const parts = n.split(/\s+/).filter(Boolean);
-    if (parts.length >= 2)
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    return n.slice(0, 2).toUpperCase();
-  }
-  const e = (email ?? "").trim();
-  if (e) return e.slice(0, 2).toUpperCase();
-  return "?";
-}
-
 export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { data: session } = authClient.useSession();
-  const user = session?.user;
-  const displayName = user ? userDisplayName(user) : "Admin";
-  const initials = initialsFromUser(user?.name ?? null, user?.email ?? null);
+  const {
+    displayName: profileDisplayName,
+    initials,
+    email,
+    signedIn,
+  } = useProfileDisplay();
+  const displayName = signedIn ? profileDisplayName : "Admin";
 
   async function handleSignOut() {
     await authClient.signOut();
@@ -112,7 +102,7 @@ export default function AdminSidebar() {
               {displayName}
             </p>
             <p className="text-xs text-muted-foreground truncate">
-              {user?.email ?? "Signed in"}
+              {email ?? "Signed in"}
             </p>
           </div>
         </div>
