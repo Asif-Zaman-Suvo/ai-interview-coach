@@ -53,17 +53,13 @@ export function EmailPasswordLoginForm({ mode }: Props) {
           setIsLoading(false);
           return;
         }
-        router.push("/admin/dashboard");
+        window.location.href = "/admin/dashboard";
       } else {
-        router.push(
-          profileRole === "admin" ? "/admin/dashboard" : "/dashboard",
-        );
+        window.location.href = profileRole === "admin" ? "/admin/dashboard" : "/dashboard";
       }
     } catch {
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     }
-
-    setIsLoading(false);
   };
 
   return (
