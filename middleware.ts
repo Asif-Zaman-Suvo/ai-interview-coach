@@ -39,6 +39,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const sessionCookie =
+    request.cookies.get("auth_hint") ||
     request.cookies.get("__Secure-better-auth.session_token") ||
     request.cookies.get("better-auth.session_token");
   const isAuthenticated = Boolean(sessionCookie);

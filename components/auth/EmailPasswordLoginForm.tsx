@@ -40,6 +40,7 @@ export function EmailPasswordLoginForm({ mode }: Props) {
       return;
     }
 
+    document.cookie = `auth_hint=1; path=/; secure; samesite=strict; max-age=${7 * 24 * 60 * 60}`;
     await queryClient.invalidateQueries({ queryKey: ["auth-user"] });
 
     try {
