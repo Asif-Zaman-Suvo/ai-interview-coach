@@ -1,11 +1,11 @@
-import { restApiRoot } from '@/lib/backend-origin';
+import { serverRestApiRoot } from '@/lib/backend-origin';
 import type { PublicTestimonial } from '@/lib/types';
 
 export async function loadPublicTestimonials(): Promise<PublicTestimonial[]> {
-  const base = restApiRoot(process.env.NEXT_PUBLIC_API_URL);
+  const base = serverRestApiRoot();
   try {
     const res = await fetch(`${base}/testimonials/public?limit=12`, {
-      next: { revalidate: 30 },
+      cache: "no-store",
     });
     if (!res.ok) return [];
     const data = (await res.json()) as { items?: PublicTestimonial[] };

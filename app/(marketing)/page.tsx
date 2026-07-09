@@ -15,6 +15,9 @@ export const metadata: Metadata = {
     "Practice interviews with AI, real-time feedback, and personalized coaching. Free to start.",
 };
 
+// Docker build has no backend; do not bake an empty testimonials shell at build time.
+export const dynamic = "force-dynamic";
+
 export default async function MarketingHomePage() {
   const [testimonials, dashboardPreview] = await Promise.all([
     loadPublicTestimonials(),

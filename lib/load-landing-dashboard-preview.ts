@@ -1,4 +1,4 @@
-import { restApiRoot } from '@/lib/backend-origin';
+import { serverRestApiRoot } from '@/lib/backend-origin';
 import type { LandingDashboardPreview } from '@/lib/types';
 
 const empty: LandingDashboardPreview = {
@@ -7,11 +7,11 @@ const empty: LandingDashboardPreview = {
 };
 
 export async function loadLandingDashboardPreview(): Promise<LandingDashboardPreview> {
-  const base = restApiRoot(process.env.NEXT_PUBLIC_API_URL);
+  const base = serverRestApiRoot();
   try {
     const res = await fetch(
       `${base}/marketing/dashboard-preview?recentLimit=3`,
-      { next: { revalidate: 30 } },
+      { cache: "no-store" },
     );
     if (!res.ok) return empty;
     const data = (await res.json()) as Partial<LandingDashboardPreview>;
