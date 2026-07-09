@@ -22,7 +22,7 @@ export function useAdminPurchaseNotificationStream(enabled: boolean) {
     cancelledRef.current = false;
     if (!enabled || typeof window === 'undefined') return;
 
-    function applyPurchase(n: AdminPackPurchaseNotification) {
+    function applyNotification(n: AdminPackPurchaseNotification) {
       queryClient.setQueryData<AdminNotificationsResponse>(
         ['admin-notifications'],
         (old) => {
@@ -44,9 +44,16 @@ export function useAdminPurchaseNotificationStream(enabled: boolean) {
         n.purchaserName?.trim()
           ? `${n.purchaserName.trim()} (${n.purchaserEmail})`
           : n.purchaserEmail;
-      toast.success('New pack purchase', {
-        description: label,
-      });
+
+      if (n.kind === 'user_signup') {
+        toast.success('New user signed up', {
+          description: `${label} · Free plan`,
+        });
+      } else {
+        toast.success('New pack purchase', {
+          description: label,
+        });
+      }
     }
 
     const es = new EventSource(apiUrl('/admin/notifications/stream'), {
@@ -64,8 +71,13 @@ export function useAdminPurchaseNotificationStream(enabled: boolean) {
           type?: string;
           notification?: AdminPackPurchaseNotification;
         };
-        if (msg.type === 'purchase' && msg.notification) {
-          applyPurchase(msg.notification);
+        if (
+          (msg.type === 'purchase' ||
+            msg.type === 'pack_purchase' ||
+            msg.type === 'user_signup') &&
+          msg.notification
+        ) {
+          applyNotification(msg.notification);
         }
       } catch {
         /* ignore */

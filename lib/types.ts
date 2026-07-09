@@ -111,9 +111,9 @@ export interface PaginatedAdminInterviews {
   totalPages: number;
 }
 
-export type AdminNotificationKind = "pack_purchase";
+export type AdminNotificationKind = "pack_purchase" | "user_signup";
 
-/** Row from `GET /admin/notifications` (pack purchase alerts). */
+/** Row from `GET /admin/notifications` (pack purchase + signup alerts). */
 export interface AdminPackPurchaseNotification {
   id: string;
   kind: AdminNotificationKind;
@@ -124,6 +124,9 @@ export interface AdminPackPurchaseNotification {
   read: boolean;
   createdAt: string;
 }
+
+/** Alias — same DTO shape for all admin notification kinds. */
+export type AdminNotificationItem = AdminPackPurchaseNotification;
 
 export interface AdminNotificationsResponse {
   items: AdminPackPurchaseNotification[];

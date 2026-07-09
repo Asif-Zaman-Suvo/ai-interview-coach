@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, ArrowRight, Radio, ShoppingBag } from "lucide-react";
+import { Bell, ArrowRight, Radio, ShoppingBag, UserPlus } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,11 +88,11 @@ export default function AdminNotificationsBell() {
                   Notifications
                 </h2>
                 <span className="inline-flex items-center rounded-full border border-border/80 bg-background/80 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                  Purchases
+                  Signups & purchases
                 </span>
               </div>
               <p className="text-xs text-muted-foreground leading-snug">
-                Live alerts when learners upgrade their interview pack.
+                Alerts when learners join (Free) or upgrade a pack.
               </p>
             </div>
             <div
@@ -104,7 +104,7 @@ export default function AdminNotificationsBell() {
               )}
               title={
                 streamLive
-                  ? "Connected — new purchases appear instantly."
+                  ? "Connected — new events appear instantly."
                   : "Reconnecting live stream…"
               }
             >
@@ -139,79 +139,115 @@ export default function AdminNotificationsBell() {
           ) : items.length === 0 ? (
             <div className="flex flex-col items-center px-4 py-12 text-center">
               <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-muted to-muted/50 ring-1 ring-border/80">
-                <ShoppingBag className="size-7 text-muted-foreground/70" />
+                <Bell className="size-7 text-muted-foreground/70" />
               </div>
               <p className="text-sm font-medium text-foreground">
-                No purchases yet
+                No alerts yet
               </p>
               <p className="mt-1 max-w-[14rem] text-xs leading-relaxed text-muted-foreground">
-                When a pack is purchased, you&apos;ll see it here right away.
+                New signups and pack purchases show up here.
               </p>
             </div>
           ) : (
             <ul className="flex flex-col gap-2.5">
-              {items.map((n) => (
-                <li
-                  key={n.id}
-                  className={cn(
-                    "group relative overflow-hidden rounded-xl border px-3.5 py-3 transition-shadow",
-                    !n.read
-                      ? "border-emerald-500/25 bg-gradient-to-br from-emerald-500/[0.07] via-card to-card shadow-sm ring-1 ring-emerald-500/15"
-                      : "border-border/70 bg-card/60 hover:bg-muted/30 hover:shadow-sm",
-                  )}
-                >
-                  {!n.read ? (
-                    <div
-                      className="pointer-events-none absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-emerald-400 to-teal-600"
-                      aria-hidden
-                    />
-                  ) : null}
-                  <div className="relative flex gap-3 pl-0.5">
-                    <div
-                      className={cn(
-                        "mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl shadow-inner",
-                        !n.read
-                          ? "bg-gradient-to-br from-emerald-500/20 to-teal-600/15 text-emerald-700 dark:text-emerald-400"
-                          : "bg-muted/80 text-muted-foreground",
-                      )}
-                    >
-                      <ShoppingBag className="size-[18px]" strokeWidth={1.75} />
-                    </div>
-                    <div className="min-w-0 flex-1 space-y-2">
-                      <div>
-                        <p className="text-sm font-semibold leading-tight text-foreground">
-                          {n.purchaserName?.trim() || "New purchase"}
-                        </p>
-                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                          {n.purchaserEmail}
-                        </p>
+              {items.map((n) => {
+                const isSignup = n.kind === "user_signup";
+                return (
+                  <li
+                    key={n.id}
+                    className={cn(
+                      "group relative overflow-hidden rounded-xl border px-3.5 py-3 transition-shadow",
+                      !n.read
+                        ? isSignup
+                          ? "border-sky-500/25 bg-gradient-to-br from-sky-500/[0.07] via-card to-card shadow-sm ring-1 ring-sky-500/15"
+                          : "border-emerald-500/25 bg-gradient-to-br from-emerald-500/[0.07] via-card to-card shadow-sm ring-1 ring-emerald-500/15"
+                        : "border-border/70 bg-card/60 hover:bg-muted/30 hover:shadow-sm",
+                    )}
+                  >
+                    {!n.read ? (
+                      <div
+                        className={cn(
+                          "pointer-events-none absolute left-0 top-0 bottom-0 w-[3px]",
+                          isSignup
+                            ? "bg-gradient-to-b from-sky-400 to-blue-600"
+                            : "bg-gradient-to-b from-emerald-400 to-teal-600",
+                        )}
+                        aria-hidden
+                      />
+                    ) : null}
+                    <div className="relative flex gap-3 pl-0.5">
+                      <div
+                        className={cn(
+                          "mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl shadow-inner",
+                          !n.read
+                            ? isSignup
+                              ? "bg-gradient-to-br from-sky-500/20 to-blue-600/15 text-sky-700 dark:text-sky-400"
+                              : "bg-gradient-to-br from-emerald-500/20 to-teal-600/15 text-emerald-700 dark:text-emerald-400"
+                            : "bg-muted/80 text-muted-foreground",
+                        )}
+                      >
+                        {isSignup ? (
+                          <UserPlus className="size-[18px]" strokeWidth={1.75} />
+                        ) : (
+                          <ShoppingBag
+                            className="size-[18px]"
+                            strokeWidth={1.75}
+                          />
+                        )}
                       </div>
-                      <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                        <span className="inline-flex max-w-full truncate rounded-md bg-muted/90 px-2 py-1 font-medium text-foreground ring-1 ring-border/60">
-                          {planChip(n.previousPlan)}
-                        </span>
-                        <ArrowRight
-                          className="size-3.5 shrink-0 text-muted-foreground"
-                          aria-hidden
-                        />
-                        <span className="inline-flex max-w-full truncate rounded-md bg-primary/12 px-2 py-1 font-semibold text-primary ring-1 ring-primary/25">
-                          {planChip(n.newPlan)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between gap-2 pt-0.5">
-                        <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground/90">
-                          {shortRelative(n.createdAt)}
-                        </span>
-                        {!n.read ? (
-                          <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
-                            New
+                      <div className="min-w-0 flex-1 space-y-2">
+                        <div>
+                          <p className="text-sm font-semibold leading-tight text-foreground">
+                            {isSignup
+                              ? n.purchaserName?.trim() || "New user"
+                              : n.purchaserName?.trim() || "New purchase"}
+                          </p>
+                          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                            {n.purchaserEmail}
+                          </p>
+                        </div>
+                        {isSignup ? (
+                          <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                            <span className="inline-flex rounded-md bg-sky-500/12 px-2 py-1 font-semibold text-sky-800 ring-1 ring-sky-500/25 dark:text-sky-300">
+                              Joined · {planChip(n.newPlan || "free")}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                            <span className="inline-flex max-w-full truncate rounded-md bg-muted/90 px-2 py-1 font-medium text-foreground ring-1 ring-border/60">
+                              {planChip(n.previousPlan)}
+                            </span>
+                            <ArrowRight
+                              className="size-3.5 shrink-0 text-muted-foreground"
+                              aria-hidden
+                            />
+                            <span className="inline-flex max-w-full truncate rounded-md bg-primary/12 px-2 py-1 font-semibold text-primary ring-1 ring-primary/25">
+                              {planChip(n.newPlan)}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between gap-2 pt-0.5">
+                          <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground/90">
+                            {shortRelative(n.createdAt)}
                           </span>
-                        ) : null}
+                          {!n.read ? (
+                            <span
+                              className={cn(
+                                "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                                isSignup
+                                  ? "bg-sky-500/15 text-sky-700 dark:text-sky-400"
+                                  : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
+                              )}
+                            >
+                              New
+                            </span>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
