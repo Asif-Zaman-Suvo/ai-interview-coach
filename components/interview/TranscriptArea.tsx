@@ -1,50 +1,74 @@
 import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { Volume2 } from "lucide-react";
+import { ANSWER_MAX_LENGTH } from "@/lib/interview-answer-draft";
 
 interface TranscriptAreaProps {
   transcript: string;
+  interimTranscript?: string;
   isListening: boolean;
+  disabled?: boolean;
+  onChange: (text: string) => void;
 }
-
 export function TranscriptArea({
   transcript,
+  interimTranscript = "",
   isListening,
+  disabled = false,
+  onChange,
 }: TranscriptAreaProps) {
+  const overLimit = transcript.length > ANSWER_MAX_LENGTH;
   return (
     <Card className="border border-border shadow-none">
-      <div className="p-4">
-        <div className="flex items-center gap-2 mb-3">
+      <div className="p-4 space-y-3">
+        <div className="flex items-center gap-2">
           <Volume2 className="size-4 text-muted-foreground" />
-          <h3 className="text-sm font-medium text-foreground">Transcript</h3>
-          {isListening && (
-            <span className="relative ml-auto flex size-6 shrink-0 items-center justify-center">
-              <span
-                className="absolute inset-0 m-auto inline-flex size-3 animate-ping rounded-full bg-primary opacity-75"
-                aria-hidden
-              />
-              <span className="relative inline-flex size-2 shrink-0 rounded-full bg-primary" />
-            </span>
-          )}
+          <label htmlFor="answer-transcript" className="text-sm font-medium">
+            Your answer
+          </label>
+          <span className="ml-auto text-xs text-muted-foreground" role="status">
+            {isListening ? "Listening…" : "Microphone stopped"}
+          </span>
         </div>
-
-        <div className="min-h-[120px] max-h-[200px] overflow-y-auto">
-          {isListening && !transcript ? (
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-4/5" />
-              <Skeleton className="h-4 w-3/5" />
-            </div>
-          ) : transcript ? (
-            <p className="text-sm text-foreground leading-relaxed">
-              {transcript}
+        <Textarea
+          id="answer-transcript"
+          value={transcript}
+          onChange={(event) => onChange(event.target.value)}
+          readOnly={isListening || disabled}
+          maxLength={ANSWER_MAX_LENGTH}
+          aria-invalid={overLimit}
+          aria-describedby="answer-help answer-count"
+          placeholder="Type your answer here, or use the microphone."
+          className="min-h-[160px] max-h-[320px] overflow-y-auto"
+        />
+        {isListening && interimTranscript && (
+          <div
+            className="rounded-md bg-muted/50 p-3 text-sm text-muted-foreground"
+            aria-live="polite"
+          >
+            <p className="text-xs font-medium mb-1">
+              Live speech (provisional)
             </p>
-          ) : (
-            <p className="text-sm text-muted-foreground italic">
-              Your answer will appear here as you speak...
-            </p>
-          )}
-        </div>
+            <p>{interimTranscript}</p>
+          </div>
+        )}
+        <p id="answer-help" className="text-xs text-muted-foreground">
+          {isListening
+            ? "Stop the microphone to review and edit your answer."
+            : "Review and correct your answer before submitting. Recording again appends new speech."}
+        </p>
+        <p
+          id="answer-count"
+          className={
+            overLimit
+              ? "text-xs text-destructive"
+              : "text-xs text-muted-foreground"
+          }
+        >
+          {transcript.length.toLocaleString()}/
+          {ANSWER_MAX_LENGTH.toLocaleString()} characters
+          {overLimit && " — shorten your answer before submitting."}
+        </p>
       </div>
     </Card>
   );

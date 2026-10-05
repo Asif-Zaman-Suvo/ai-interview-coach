@@ -18,7 +18,8 @@ export default function InterviewResultPage() {
   const { data: session, isLoading, isError } = useSessionById(sessionId);
 
   if (isLoading) return <LoadingSpinner />;
-  if (isError || !session) return <ErrorMessage message="Failed to load interview results" />;
+  if (isError || !session)
+    return <ErrorMessage message="Failed to load interview results" />;
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
@@ -30,7 +31,9 @@ export default function InterviewResultPage() {
             Interview Completed
           </span>
         </div>
-        <h1 className="text-3xl font-bold text-foreground">Interview Results</h1>
+        <h1 className="text-3xl font-bold text-foreground">
+          Interview Results
+        </h1>
         <p className="text-muted-foreground">
           {session.role} • {session.difficulty} •{" "}
           {new Date(session.startedAt).toLocaleDateString()}
@@ -42,7 +45,9 @@ export default function InterviewResultPage() {
         <div className="space-y-4">
           <div>
             <p className="text-sm text-muted-foreground mb-2">Overall Score</p>
-            <div className="text-6xl font-bold text-foreground">{session.score}</div>
+            <div className="text-6xl font-bold text-foreground">
+              {session.score}
+            </div>
             <p className="text-sm text-muted-foreground mt-2">out of 100</p>
           </div>
 
@@ -54,8 +59,8 @@ export default function InterviewResultPage() {
                   session.score >= 80
                     ? "bg-green-500"
                     : session.score >= 60
-                    ? "bg-yellow-500"
-                    : "bg-red-500"
+                      ? "bg-yellow-500"
+                      : "bg-red-500"
                 }`}
                 style={{ width: `${session.score}%` }}
               ></div>
@@ -64,17 +69,44 @@ export default function InterviewResultPage() {
               {session.score >= 80
                 ? "Excellent performance!"
                 : session.score >= 60
-                ? "Good effort!"
-                : "Keep practicing!"}
+                  ? "Good effort!"
+                  : "Keep practicing!"}
             </p>
           </div>
         </div>
       </Card>
 
+      {(session.summary || (session.topImprovements?.length ?? 0) > 0) && (
+        <Card className="p-6 space-y-4">
+          <h2 className="text-xl font-semibold text-foreground">
+            Overall Interview Summary
+          </h2>
+          {session.summary && (
+            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+              {session.summary}
+            </p>
+          )}
+          {!!session.topImprovements?.length && (
+            <div>
+              <h3 className="text-sm font-medium text-foreground mb-2">
+                Top Priorities for Your Next Interview
+              </h3>
+              <ol className="list-decimal pl-5 space-y-2 text-sm text-muted-foreground">
+                {session.topImprovements.map((improvement, index) => (
+                  <li key={index}>{improvement}</li>
+                ))}
+              </ol>
+            </div>
+          )}
+        </Card>
+      )}
+
       {/* Session Summary */}
       {session.feedback && session.feedback.length > 0 && (
         <Card className="p-6">
-          <h2 className="text-xl font-semibold text-foreground mb-4">Session Summary</h2>
+          <h2 className="text-xl font-semibold text-foreground mb-4">
+            Answer Highlights
+          </h2>
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
@@ -83,10 +115,13 @@ export default function InterviewResultPage() {
               </h3>
               <ul className="space-y-2">
                 {session.feedback
-                  .flatMap(f => f.strengths)
+                  .flatMap((f) => f.strengths)
                   .slice(0, 5)
                   .map((strength, index) => (
-                    <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                    <li
+                      key={index}
+                      className="text-sm text-muted-foreground flex items-start gap-2"
+                    >
                       <span className="text-green-500 mt-0.5">•</span>
                       <span>{strength}</span>
                     </li>
@@ -101,10 +136,13 @@ export default function InterviewResultPage() {
               </h3>
               <ul className="space-y-2">
                 {session.feedback
-                  .flatMap(f => f.improvements)
+                  .flatMap((f) => f.improvements)
                   .slice(0, 5)
                   .map((improvement, index) => (
-                    <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                    <li
+                      key={index}
+                      className="text-sm text-muted-foreground flex items-start gap-2"
+                    >
                       <span className="text-yellow-500 mt-0.5">•</span>
                       <span>{improvement}</span>
                     </li>
@@ -117,14 +155,23 @@ export default function InterviewResultPage() {
 
       {/* Question Breakdown */}
       <Card className="p-6">
-        <h2 className="text-xl font-semibold text-foreground mb-4">Question Breakdown</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-4">
+          Question Breakdown
+        </h2>
         <div className="space-y-4">
           {session.questions.map((question, index) => {
-            const answerFeedback = session.feedback?.find(f => f.questionId === question.id);
-            const answer = session.answers?.find(a => a.questionId === question.id);
+            const answerFeedback = session.feedback?.find(
+              (f) => f.questionId === question.id,
+            );
+            const answer = session.answers?.find(
+              (a) => a.questionId === question.id,
+            );
 
             return (
-              <div key={question.id} className="border border-border rounded-lg p-4">
+              <div
+                key={question.id}
+                className="border border-border rounded-lg p-4"
+              >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -147,7 +194,9 @@ export default function InterviewResultPage() {
 
                 {answer && (
                   <div className="mb-3">
-                    <p className="text-xs text-muted-foreground mb-1">Your Answer:</p>
+                    <p className="text-xs text-muted-foreground mb-1">
+                      Your Answer:
+                    </p>
                     <p className="text-sm text-foreground bg-muted p-3 rounded">
                       {answer.transcript}
                     </p>
@@ -156,8 +205,12 @@ export default function InterviewResultPage() {
 
                 {answerFeedback && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">Feedback:</p>
-                    <p className="text-sm text-foreground">{answerFeedback.feedback}</p>
+                    <p className="text-xs text-muted-foreground mb-1">
+                      Feedback:
+                    </p>
+                    <p className="text-sm text-foreground">
+                      {answerFeedback.feedback}
+                    </p>
                   </div>
                 )}
               </div>
@@ -168,7 +221,9 @@ export default function InterviewResultPage() {
 
       {/* Session Stats */}
       <Card className="p-6">
-        <h2 className="text-xl font-semibold text-foreground mb-4">Session Statistics</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-4">
+          Session Statistics
+        </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <p className="text-sm text-muted-foreground">Duration</p>
@@ -178,15 +233,21 @@ export default function InterviewResultPage() {
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Questions</p>
-            <p className="text-lg font-semibold text-foreground">{session.questions.length}</p>
+            <p className="text-lg font-semibold text-foreground">
+              {session.questions.length}
+            </p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Difficulty</p>
-            <p className="text-lg font-semibold text-foreground">{session.difficulty}</p>
+            <p className="text-lg font-semibold text-foreground">
+              {session.difficulty}
+            </p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Status</p>
-            <p className="text-lg font-semibold text-foreground capitalize">{session.status}</p>
+            <p className="text-lg font-semibold text-foreground capitalize">
+              {session.status}
+            </p>
           </div>
         </div>
       </Card>

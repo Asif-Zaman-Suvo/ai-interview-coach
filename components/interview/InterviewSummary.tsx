@@ -26,7 +26,9 @@ export function InterviewSummary({
             <span className="text-sm text-muted-foreground">Role</span>
             <div className="flex items-center gap-2">
               <span className="text-lg">{role.icon}</span>
-              <span className="text-sm font-medium text-foreground">{role.name}</span>
+              <span className="text-sm font-medium text-foreground">
+                {role.name}
+              </span>
             </div>
           </div>
 
@@ -40,10 +42,14 @@ export function InterviewSummary({
             {resumeFile ? (
               <div className="flex items-center gap-2">
                 <Check className="size-4 text-green-600 dark:text-green-500" />
-                <span className="text-sm text-foreground">{resumeFile.name}</span>
+                <span className="text-sm text-foreground">
+                  {resumeFile.name}
+                </span>
               </div>
             ) : (
-              <span className="text-sm text-muted-foreground">Not uploaded</span>
+              <span className="text-sm text-muted-foreground">
+                Not uploaded
+              </span>
             )}
           </div>
         </div>
@@ -51,9 +57,10 @@ export function InterviewSummary({
 
       <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
         <p className="text-sm text-foreground">
-          <strong>What to expect:</strong> You&apos;ll answer 5 questions tailored
-          to your role and difficulty level. Take your time, and speak clearly
-          into your microphone.
+          <strong>What to expect:</strong> You&apos;ll answer up to 5 questions
+          from the existing question bank for your selected role and difficulty.
+          You can speak or type your answers. CV-based question generation is
+          not available yet.
         </p>
       </div>
     </div>

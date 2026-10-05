@@ -10,7 +10,6 @@ import {
   Plus,
   Clock,
   BarChart2,
-  FileText,
   Settings,
   Mic,
   LogOut,
@@ -26,7 +25,6 @@ const navBase = [
   { href: "/interview/setup", label: "New interview", icon: Plus },
   { href: "/history", label: "History", icon: Clock },
   { href: "/analytics", label: "Analytics", icon: BarChart2 },
-  { href: "/resume", label: "Resume", icon: FileText },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

@@ -260,7 +260,7 @@ export interface AnswerFeedback {
 export interface InterviewSetup {
   roleId: string;
   difficulty: Difficulty;
-  resumeText?: string;
+  resumeId?: string;
 }
 
 // Session start response

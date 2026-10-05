@@ -11,14 +11,12 @@ import {
   PlusCircle,
   BarChart3,
   Settings,
-  FileText,
 } from "lucide-react";
 
 const navBase = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/interview/setup", label: "New", icon: PlusCircle },
   { href: "/analytics", label: "History", icon: BarChart3 },
-  { href: "/resume", label: "Resume", icon: FileText },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

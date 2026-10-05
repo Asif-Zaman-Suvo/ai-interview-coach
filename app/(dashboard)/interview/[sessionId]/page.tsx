@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef, useSyncExternalStore } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useSyncExternalStore,
+  useCallback,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -18,6 +24,13 @@ import {
   useCompleteSession,
 } from "@/lib/hooks/useInterview";
 import { AnswerFeedback } from "@/lib/types";
+
+import {
+  emptyAnswerDraft,
+  updateAnswerDraft,
+  canSubmitAnswer,
+} from "@/lib/interview-answer-draft";
+import type { DraftAction } from "@/lib/interview-answer-draft";
 
 const noopSubscribe = () => () => {};
 
@@ -54,7 +67,11 @@ function readWebSpeechSupported(): boolean {
 }
 
 function useWebSpeechSupported() {
-  return useSyncExternalStore(noopSubscribe, readWebSpeechSupported, () => true);
+  return useSyncExternalStore(
+    noopSubscribe,
+    readWebSpeechSupported,
+    () => true,
+  );
 }
 
 export default function LiveInterviewPage() {
@@ -76,7 +93,13 @@ export default function LiveInterviewPage() {
   // Local state
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
-  const [transcript, setTranscript] = useState("");
+  const [draft, setDraft] = useState(emptyAnswerDraft);
+  const draftRef = useRef(emptyAnswerDraft);
+  const changeDraft = useCallback((action: DraftAction) => {
+    draftRef.current = updateAnswerDraft(draftRef.current, action);
+    setDraft(draftRef.current);
+  }, []);
+  const transcript = draft.text;
   const [sessionTime, setSessionTime] = useState(0);
   const [feedback, setFeedback] = useState<AnswerFeedback | null>(null);
   const [answeredCount, setAnsweredCount] = useState(0);
@@ -84,23 +107,14 @@ export default function LiveInterviewPage() {
   const browserSupported = useWebSpeechSupported();
 
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
-  /** Text already in the box when the current recognition.start() ran (survives stop/start). */
-  const transcriptBaseRef = useRef("");
-  /** Finals since the last recognition.start() in this mic session. */
-  const sessionFinalRef = useRef("");
-  const isRecordingRef = useRef(false);
-
-  useEffect(() => {
-    isRecordingRef.current = isRecording;
-  }, [isRecording]);
+  const recordingStartVersionRef = useRef(0);
 
   /** Reflect OS/browser mic permission when the Permissions API exposes it (Chrome). */
   useEffect(() => {
     if (typeof window === "undefined" || !browserSupported) return;
     let permissionStatus: PermissionStatus | undefined;
     const sync = () => {
-      if (permissionStatus)
-        setMicBlocked(permissionStatus.state === "denied");
+      if (permissionStatus) setMicBlocked(permissionStatus.state === "denied");
     };
     void navigator.permissions
       ?.query({ name: "microphone" as PermissionName })
@@ -115,94 +129,25 @@ export default function LiveInterviewPage() {
     };
   }, [browserSupported]);
 
-  // Initialize Web Speech API (instance kept on ref — no sync setState in effect)
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const win = window as Window & {
-      SpeechRecognition?: SpeechRecognitionCtor;
-      webkitSpeechRecognition?: SpeechRecognitionCtor;
-    };
-    const SpeechRecognitionCtor =
-      win.SpeechRecognition ?? win.webkitSpeechRecognition;
-
-    if (!SpeechRecognitionCtor) return;
-
-    const recognitionInstance = new SpeechRecognitionCtor();
-    recognitionInstance.continuous = true;
-    recognitionInstance.interimResults = true;
-    recognitionInstance.lang = "en-US";
-
-    recognitionInstance.onresult = (event: SpeechRecognitionResultEvent) => {
-      let interim = "";
-      let deltaFinal = "";
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const chunk = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          deltaFinal += chunk;
-        } else {
-          interim += chunk;
-        }
-      }
-
-      const trimmedDelta = deltaFinal.trim();
-      if (trimmedDelta) {
-        const prev = sessionFinalRef.current;
-        sessionFinalRef.current = prev
-          ? `${prev} ${trimmedDelta}`
-          : trimmedDelta;
-      }
-
-      const base = transcriptBaseRef.current.trim();
-      const finals = sessionFinalRef.current.trim();
-      const live = interim.trim();
-      const segments = [base, finals, live].filter(Boolean);
-      setTranscript(segments.join(" "));
-    };
-
-    recognitionInstance.onerror = (event: SpeechRecognitionErrorLike) => {
-      const code = event.error;
-      // Expected when we call stop(); do not flip UI or log as failure.
-      if (code === "aborted") return;
-      // Common in continuous mode after silence; onend will restart if still recording.
-      if (code === "no-speech") return;
-      if (code === "not-allowed" || code === "service-not-allowed") {
-        isRecordingRef.current = false;
-        setIsRecording(false);
-        setMicBlocked(true);
-        return;
-      }
-      if (code === "audio-capture") {
-        isRecordingRef.current = false;
-        setIsRecording(false);
-        setMicBlocked(true);
-        return;
-      }
-      console.warn("Speech recognition:", code);
-    };
-
-    recognitionInstance.onend = () => {
-      if (isRecordingRef.current) {
-        try {
-          recognitionInstance.start();
-        } catch {
-          /* already started */
-        }
-      }
-    };
-
-    recognitionRef.current = recognitionInstance;
-
-    return () => {
+  // Every recording uses a new recognizer so stale events keep their old ID.
+  useEffect(
+    () => () => {
+      recordingStartVersionRef.current += 1;
+      const recognition = recognitionRef.current;
       recognitionRef.current = null;
-      try {
-        recognitionInstance.stop();
-      } catch {
-        /* already stopped */
+      if (recognition) {
+        recognition.onresult = null;
+        recognition.onerror = null;
+        recognition.onend = null;
+        try {
+          recognition.stop();
+        } catch {
+          /* already stopped */
+        }
       }
-    };
-  }, []);
+    },
+    [],
+  );
 
   // Timer
   useEffect(() => {
@@ -213,22 +158,33 @@ export default function LiveInterviewPage() {
     return () => clearInterval(timer);
   }, []);
 
+  const stopRecording = () => {
+    // Freeze the draft before stopping so late results cannot overwrite edits.
+    recordingStartVersionRef.current += 1;
+    setIsRecording(false);
+    changeDraft({ type: "stop" });
+    try {
+      recognitionRef.current?.stop();
+    } catch {
+      /* already stopped */
+    }
+  };
+
   // Handle recording toggle
   const handleToggleRecording = () => {
-    const recognition = recognitionRef.current;
-    if (!recognition || !browserSupported) return;
-
+    if (!browserSupported || submitting || completing || feedback) return;
     if (isRecording) {
-      isRecordingRef.current = false;
-      try {
-        recognition.stop();
-      } catch {
-        /* already stopped */
-      }
-      setIsRecording(false);
+      stopRecording();
       return;
     }
+    const win = window as Window & {
+      SpeechRecognition?: SpeechRecognitionCtor;
+      webkitSpeechRecognition?: SpeechRecognitionCtor;
+    };
+    const Ctor = win.SpeechRecognition ?? win.webkitSpeechRecognition;
+    if (!Ctor) return;
 
+    const startVersion = ++recordingStartVersionRef.current;
     void (async () => {
       if (navigator.mediaDevices?.getUserMedia) {
         try {
@@ -243,14 +199,46 @@ export default function LiveInterviewPage() {
         }
       }
 
-      transcriptBaseRef.current = transcript.trim();
-      sessionFinalRef.current = "";
-      isRecordingRef.current = true;
+      if (startVersion !== recordingStartVersionRef.current) return;
+      const recognition = new Ctor();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
+      changeDraft({ type: "start" });
+      const recordingId = draftRef.current.recordingId;
+      recognition.onresult = (event) => {
+        let final = "";
+        let interim = "";
+        // Results are cumulative within this recording; rebuild instead of
+        // appending resultIndex deltas that can duplicate earlier words.
+        for (let i = 0; i < event.results.length; i++) {
+          const text = event.results[i][0].transcript;
+          if (event.results[i].isFinal) final += ` ${text}`;
+          else interim += ` ${text}`;
+        }
+        changeDraft({ type: "speech", recordingId, final, interim });
+      };
+      const finish = () => {
+        if (recognitionRef.current !== recognition) return;
+        setIsRecording(false);
+        changeDraft({ type: "stop", recordingId });
+      };
+      recognition.onend = finish;
+      recognition.onerror = (event) => {
+        if (recognitionRef.current !== recognition) return;
+        if (
+          ["not-allowed", "service-not-allowed", "audio-capture"].includes(
+            event.error,
+          )
+        )
+          setMicBlocked(true);
+        finish();
+      };
+      recognitionRef.current = recognition;
       try {
         recognition.start();
       } catch {
-        isRecordingRef.current = false;
-        setIsRecording(false);
+        finish();
         return;
       }
       setIsRecording(true);
@@ -259,14 +247,22 @@ export default function LiveInterviewPage() {
 
   // Handle answer submission
   const handleSubmitAnswer = () => {
-    if (!session || !transcript.trim()) return;
+    if (
+      !session ||
+      !canSubmitAnswer(draftRef.current) ||
+      submitting ||
+      completing ||
+      feedback
+    )
+      return;
+    stopRecording();
 
     const currentQuestion = session.questions[currentQuestionIndex];
 
     submitAnswer(
       {
         questionId: currentQuestion.id,
-        transcript: transcript,
+        transcript: draftRef.current.text,
       },
       {
         onSuccess: (data) => {
@@ -282,14 +278,12 @@ export default function LiveInterviewPage() {
 
   // Handle next question
   const handleNextQuestion = () => {
+    stopRecording();
     if (feedback?.nextQuestion) {
       // Move to next question
       setCurrentQuestionIndex((prev) => prev + 1);
-      transcriptBaseRef.current = "";
-      sessionFinalRef.current = "";
-      setTranscript("");
+      changeDraft({ type: "reset" });
       setFeedback(null);
-      setIsRecording(false);
     } else {
       // Complete session
       handleCompleteSession();
@@ -298,6 +292,7 @@ export default function LiveInterviewPage() {
 
   // Handle session completion
   const handleCompleteSession = () => {
+    stopRecording();
     completeSession(undefined, {
       onSuccess: () => {
         router.push(`/interview/result/${sessionId}`);
@@ -352,9 +347,9 @@ export default function LiveInterviewPage() {
       {!browserSupported && (
         <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 m-4 rounded-lg">
           <p className="text-sm text-yellow-600 dark:text-yellow-400">
-            <strong>Browser not supported:</strong> Voice recognition only works
-            in Chrome-based browsers. Please switch to Chrome for the best
-            experience.
+            <strong>Browser not supported:</strong> Voice recognition is
+            unavailable in this browser. You can type your answer below, or use
+            a browser that supports speech recognition.
           </p>
         </div>
       )}
@@ -371,9 +366,10 @@ export default function LiveInterviewPage() {
                 Microphone blocked for this site
               </p>
               <p className="text-rose-900/90 dark:text-rose-100/90 leading-relaxed">
-                The crossed-out mic in your browser&apos;s address bar means this
-                tab isn&apos;t allowed to use the microphone. Speech-to-text cannot
-                run until you allow access.
+                The crossed-out mic in your browser&apos;s address bar means
+                this tab isn&apos;t allowed to use the microphone.
+                Speech-to-text cannot run until you allow access. You can still
+                type your answer below.
               </p>
               <ol className="list-decimal list-inside space-y-1 text-rose-900/85 dark:text-rose-100/85">
                 <li>
@@ -408,11 +404,19 @@ export default function LiveInterviewPage() {
           <div className="lg:col-span-1 space-y-4">
             <MicButton
               isRecording={isRecording}
-              disabled={!browserSupported || !!feedback}
+              disabled={
+                !browserSupported || submitting || completing || !!feedback
+              }
               onToggle={handleToggleRecording}
             />
 
-            <TranscriptArea transcript={transcript} isListening={isRecording} />
+            <TranscriptArea
+              transcript={transcript}
+              interimTranscript={draft.interim}
+              isListening={draft.listening}
+              disabled={submitting || completing || !!feedback}
+              onChange={(text) => changeDraft({ type: "edit", text })}
+            />
 
             {feedback && (
               <FeedbackCard
@@ -423,10 +427,10 @@ export default function LiveInterviewPage() {
               />
             )}
 
-            {!feedback && transcript.trim() && (
+            {!feedback && (
               <Button
                 onClick={handleSubmitAnswer}
-                disabled={submitting}
+                disabled={submitting || completing || !canSubmitAnswer(draft)}
                 className="w-full"
               >
                 {submitting ? "Submitting..." : "Submit Answer"}

@@ -5,25 +5,34 @@ import { cn } from "@/lib/utils";
 import { useState, useRef } from "react";
 
 interface ResumeUploadProps {
+  disabled?: boolean;
+  selectedFile?: File | null;
   onFileSelect: (file: File | null) => void;
 }
 
-export function ResumeUpload({ onFileSelect }: ResumeUploadProps) {
-  const [file, setFile] = useState<File | null>(null);
+export function ResumeUpload({
+  onFileSelect,
+  selectedFile,
+  disabled,
+}: ResumeUploadProps) {
+  const [file, setFile] = useState<File | null>(selectedFile ?? null);
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const acceptedTypes = [
     "application/pdf",
-    "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   ];
   const maxSize = 5 * 1024 * 1024; // 5MB
 
   const validateFile = (file: File): boolean => {
-    if (!acceptedTypes.includes(file.type)) {
-      setError("Please upload a PDF or Word document");
+    if (disabled) return false;
+    if (
+      !acceptedTypes.includes(file.type) ||
+      !/\.(pdf|docx)$/i.test(file.name)
+    ) {
+      setError("Please upload a PDF or DOCX document");
       return false;
     }
     if (file.size > maxSize) {
@@ -75,6 +84,7 @@ export function ResumeUpload({ onFileSelect }: ResumeUploadProps) {
   };
 
   const handleRemove = () => {
+    if (disabled) return;
     setFile(null);
     onFileSelect(null);
     setError("");
@@ -97,7 +107,9 @@ export function ResumeUpload({ onFileSelect }: ResumeUploadProps) {
                 <FileText className="size-5 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-sm font-medium text-foreground">{file.name}</p>
+                <p className="text-sm font-medium text-foreground">
+                  {file.name}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   {(file.size / 1024).toFixed(1)} KB
                 </p>
@@ -108,6 +120,7 @@ export function ResumeUpload({ onFileSelect }: ResumeUploadProps) {
               size="sm"
               onClick={handleRemove}
               aria-label="Remove file"
+              disabled={disabled}
             >
               <X className="size-4" />
             </Button>
@@ -117,7 +130,7 @@ export function ResumeUpload({ onFileSelect }: ResumeUploadProps) {
         <Card
           className={cn(
             "border shadow-none transition-colors",
-            dragActive ? "border-primary bg-primary/5" : "border-border"
+            dragActive ? "border-primary bg-primary/5" : "border-border",
           )}
         >
           <div
@@ -139,10 +152,11 @@ export function ResumeUpload({ onFileSelect }: ResumeUploadProps) {
                   {dragActive ? "Drop your resume here" : "Upload your resume"}
                 </p>
                 <p className="text-xs text-muted-foreground mb-3">
-                  PDF or Word, up to 5MB
+                  PDF or DOCX, up to 5MB
                 </p>
               </label>
               <Button
+                disabled={disabled}
                 type="button"
                 variant="outline"
                 size="sm"
@@ -156,9 +170,11 @@ export function ResumeUpload({ onFileSelect }: ResumeUploadProps) {
               <input
                 ref={inputRef}
                 id="resume-upload"
+                aria-label="Upload your resume"
                 type="file"
+                disabled={disabled}
                 className="sr-only"
-                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={handleChange}
               />
             </div>

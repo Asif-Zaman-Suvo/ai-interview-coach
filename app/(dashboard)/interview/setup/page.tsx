@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -16,14 +16,30 @@ import { useSessionQuota } from "@/lib/hooks/useDashboard";
 import { PLAN_LABEL } from "@/lib/types";
 import { quotaUpgradeHref } from "@/lib/pricing-packs";
 
-const steps = ["Role", "Difficulty", "Resume", "Summary"];
+const steps = ["Resume", "Profile", "Target Interview", "Summary"];
+
+import { ResumeProfileReview } from "@/components/interview/ResumeProfileReview";
+import {
+  uploadResume,
+  analyzeResume,
+  confirmResume,
+  type ResumeProfile,
+  type ResumeRecord,
+} from "@/lib/resumes";
 
 export default function InterviewSetupPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-  const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | null>(null);
+  const [selectedDifficulty, setSelectedDifficulty] =
+    useState<Difficulty | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+
+  const [resume, setResume] = useState<ResumeRecord | null>(null);
+  const [profile, setProfile] = useState<ResumeProfile | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [resumeError, setResumeError] = useState("");
+  const processing = useRef(false);
 
   const { data: roles, isLoading: rolesLoading } = useRoles();
   const { mutate: startSession, isPending: isStarting } = useStartSession();
@@ -33,66 +49,86 @@ export default function InterviewSetupPage() {
     quota && !quota.adminUnlimited && !quota.canStartNewSession,
   );
 
-  const canProceed = () => {
-    switch (currentStep) {
-      case 1:
-        return selectedRole !== null;
-      case 2:
-        return selectedDifficulty !== null;
-      case 3:
-        return true; // Resume is optional
-      case 4:
-        return selectedRole !== null && selectedDifficulty !== null;
-      default:
-        return false;
-    }
-  };
+  const canProceed = () =>
+    currentStep === 1 ||
+    (currentStep === 2 && Boolean(profile?.suggestedRole.trim())) ||
+    (currentStep >= 3 && selectedRole !== null && selectedDifficulty !== null);
 
   const handleNext = async () => {
-    if (currentStep < steps.length) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      // Start interview with API
-      if (!selectedRole || !selectedDifficulty) return;
-
-      // Read resume file if uploaded
-      let resumeText = "";
-      if (resumeFile) {
-        resumeText = await readResumeFile(resumeFile);
-      }
-
-      startSession(
-        {
-          roleId: selectedRole.id,
-          difficulty: selectedDifficulty,
-          resumeText: resumeText || undefined,
-        },
-        {
-          onSuccess: (data) => {
-            router.push(`/interview/${data.sessionId}`);
-          },
+    if (processing.current || isStarting) return;
+    processing.current = true;
+    setIsProcessing(true);
+    setResumeError("");
+    try {
+      if (currentStep === 1) {
+        if (!resumeFile) {
+          setCurrentStep(3);
+          return;
         }
+        if (profile && resume) {
+          setCurrentStep(2);
+          return;
+        }
+        const uploaded = resume ?? (await uploadResume(resumeFile));
+        setResume(uploaded);
+        const analyzed = await analyzeResume(uploaded.id);
+        setResume(analyzed);
+        setProfile(analyzed.profile);
+        if (analyzed.profile) {
+          const match = roles?.find(
+            (role) =>
+              role.name.toLowerCase() ===
+              analyzed.profile!.suggestedRole.toLowerCase(),
+          );
+          if (!selectedRole && match) setSelectedRole(match);
+          if (!selectedDifficulty)
+            setSelectedDifficulty(
+              analyzed.profile.experienceLevel === "Junior"
+                ? "Easy"
+                : analyzed.profile.experienceLevel === "Mid"
+                  ? "Medium"
+                  : "Hard",
+            );
+        }
+        setCurrentStep(2);
+      } else if (currentStep === 2) {
+        setCurrentStep(3);
+      } else if (currentStep === 3) {
+        if (resume && profile && selectedRole && selectedDifficulty) {
+          const confirmed = await confirmResume(
+            resume.id,
+            profile,
+            selectedRole.id,
+            selectedDifficulty,
+          );
+          setResume(confirmed);
+        }
+        setCurrentStep(4);
+      } else if (selectedRole && selectedDifficulty) {
+        startSession(
+          {
+            roleId: selectedRole.id,
+            difficulty: selectedDifficulty,
+            ...(resume ? { resumeId: resume.id } : {}),
+          },
+          { onSuccess: (data) => router.push(`/interview/${data.sessionId}`) },
+        );
+      }
+    } catch (error) {
+      setResumeError(
+        error instanceof Error
+          ? error.message
+          : "Resume processing failed. Please retry.",
       );
+    } finally {
+      processing.current = false;
+      setIsProcessing(false);
     }
-  };
-
-  const readResumeFile = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const text = e.target?.result as string;
-        resolve(text);
-      };
-      reader.onerror = () => {
-        reject(new Error('Failed to read resume file'));
-      };
-      reader.readAsText(file);
-    });
   };
 
   const handleBack = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+      setCurrentStep(currentStep === 3 && !profile ? 1 : currentStep - 1);
     }
   };
 
@@ -101,6 +137,7 @@ export default function InterviewSetupPage() {
       <Button
         variant="ghost"
         size="sm"
+        disabled={isProcessing || isStarting}
         onClick={() => router.back()}
         className="mb-6"
       >
@@ -109,7 +146,9 @@ export default function InterviewSetupPage() {
       </Button>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-foreground">New Interview</h1>
+        <h1 className="text-2xl font-semibold text-foreground">
+          New Interview
+        </h1>
         <p className="text-sm text-muted-foreground mt-1">
           Set up your personalized interview session
         </p>
@@ -147,7 +186,8 @@ export default function InterviewSetupPage() {
         >
           <p className="font-medium">Interview limit reached</p>
           <p className="mt-1 text-muted-foreground">
-            You&apos;ve used all {quota.sessionLimit} interviews in your current pack.{" "}
+            You&apos;ve used all {quota.sessionLimit} interviews in your current
+            pack.{" "}
             <Link
               href={quotaUpgradeHref(quota.plan)}
               className="font-medium text-primary underline-offset-4 hover:underline"
@@ -159,28 +199,74 @@ export default function InterviewSetupPage() {
         </div>
       ) : null}
 
-      <StepIndicator
-        currentStep={currentStep}
-        steps={steps}
-      />
+      <StepIndicator currentStep={currentStep} steps={steps} />
 
       <div className="mb-8">
         {currentStep === 1 && (
-          <RoleSelection
-            roles={roles}
-            selectedRole={selectedRole}
-            onSelect={setSelectedRole}
-            isLoading={rolesLoading}
-          />
+          <div className="space-y-3">
+            <ResumeUpload
+              disabled={isProcessing}
+              selectedFile={resumeFile}
+              onFileSelect={(file) => {
+                if (processing.current) return;
+                setResumeFile(file);
+                setResume(null);
+                setProfile(null);
+                setResumeError("");
+              }}
+            />
+            <p className="text-xs text-muted-foreground">
+              Resume text is sent to our AI provider to detect professional
+              experience and skills. Review the result before continuing. The
+              uploaded file is not stored.
+            </p>
+            {isProcessing && (
+              <p role="status" className="text-sm text-muted-foreground">
+                Extracting and analyzing your resume…
+              </p>
+            )}
+            {resumeError && resume && (
+              <p className="text-sm text-muted-foreground">
+                Your extracted resume is saved. Continue to retry without
+                re-uploading.
+              </p>
+            )}
+          </div>
         )}
-        {currentStep === 2 && (
-          <DifficultySelection
-            selectedDifficulty={selectedDifficulty}
-            onSelect={setSelectedDifficulty}
-          />
+        {currentStep === 2 && profile && (
+          <ResumeProfileReview profile={profile} onChange={setProfile} />
         )}
         {currentStep === 3 && (
-          <ResumeUpload onFileSelect={setResumeFile} />
+          <div className="space-y-6">
+            <p className="text-sm text-muted-foreground">
+              Choose the role you want to practice. It can differ from your
+              detected profile. Questions currently come from the existing
+              question bank.
+            </p>
+            <RoleSelection
+              roles={roles}
+              selectedRole={selectedRole}
+              onSelect={(role) => {
+                if (!processing.current) setSelectedRole(role);
+              }}
+              isLoading={rolesLoading}
+            />
+            <DifficultySelection
+              selectedDifficulty={selectedDifficulty}
+              onSelect={(difficulty) => {
+                if (!processing.current) setSelectedDifficulty(difficulty);
+              }}
+            />
+            {profile && (
+              <Button
+                variant="outline"
+                disabled={isProcessing}
+                onClick={() => setCurrentStep(2)}
+              >
+                Edit detected profile
+              </Button>
+            )}
+          </div>
         )}
         {currentStep === 4 && (
           <InterviewSummary
@@ -191,11 +277,16 @@ export default function InterviewSetupPage() {
         )}
       </div>
 
+      {resumeError && (
+        <p role="alert" className="mb-4 text-sm text-destructive">
+          {resumeError}
+        </p>
+      )}
       <div className="flex items-center justify-between pt-4 border-t border-border">
         <Button
           variant="ghost"
           onClick={handleBack}
-          disabled={currentStep === 1}
+          disabled={currentStep === 1 || isProcessing || isStarting}
         >
           <ChevronLeft className="size-4" />
           Back
@@ -208,13 +299,14 @@ export default function InterviewSetupPage() {
           disabled={
             !canProceed() ||
             isStarting ||
+            isProcessing ||
             (currentStep === steps.length && atLimit)
           }
         >
-          {isStarting ? (
+          {isStarting || isProcessing ? (
             <>
               <Loader2 className="size-4 animate-spin" />
-              Starting...
+              {isStarting ? "Starting..." : "Processing..."}
             </>
           ) : currentStep === steps.length ? (
             "Start Interview"
