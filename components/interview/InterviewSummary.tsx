@@ -57,10 +57,11 @@ export function InterviewSummary({
 
       <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
         <p className="text-sm text-foreground">
-          <strong>What to expect:</strong> You&apos;ll answer up to 5 questions
-          from the existing question bank for your selected role and difficulty.
-          You can speak or type your answers. CV-based question generation is
-          not available yet.
+          <strong>What to expect:</strong>{" "}
+          {resumeFile
+            ? "You'll answer 5 questions tailored to your reviewed profile, target role and difficulty, including a curated question when available. If AI generation is unavailable, suitable question-bank questions may be used instead."
+            : "You'll answer up to 5 curated question-bank questions for your selected role and difficulty."}{" "}
+          You can speak or type your answers.
         </p>
       </div>
     </div>
